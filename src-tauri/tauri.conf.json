@@ -1,0 +1,36 @@
+{
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "ButterClient",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "ButterClient"
+    },
+    "allowlist": {
+      "all": true
+    },
+    "security": {
+      "csp": null,
+	  "dangerousUseHttpScheme": true
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "title": "MHF-Z ButterClient",
+        "fullscreen": false,
+        "resizable": false,
+        "visible": false,
+        "theme": "Dark"
+      }
+    ]
+  }
+}

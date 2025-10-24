@@ -1,0 +1,45 @@
+[package]
+name = "app"
+version = "0.1.0"
+description = "ButterClient"
+authors = ["you"]
+license = ""
+repository = ""
+default-run = "app"
+edition = "2021"
+rust-version = "1.57"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_repr = "0.1"
+reqwest = { version = "0.11", features = ["json", "gzip"] }
+keyring = "2"
+sha2 = "0.10"
+tokio = { version = "1", features = ["macros"] }
+tokio-util = { version = "0.7", features = [] }
+tauri = { version = "1.5", features = ["api-all"] }
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+
+# mhf-iel = { git = "https://github.com/rockisch/mhf-iel.git", rev = "dc7a4a982a5d3263bb2859a46ebb7ba9ab198f69" }
+mhf-iel = { path = "./mhf-iel-master" }
+
+
+[dependencies.windows]
+version = "0.52"
+features = ["Win32_System_WindowsProgramming"]
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = ["custom-protocol"]
+# this feature is used for production builds where `devPath` points to the filesystem
+# DO NOT remove this
+custom-protocol = ["tauri/custom-protocol"]
