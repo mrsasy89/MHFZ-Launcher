@@ -49,7 +49,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ### 📅 Roadmap (Phase 4)
 
 - [ ] Auto-update system
-- [ ] Multi-language support (EN/JP/IT)
+- [ ] Multi-language support (EN/IT)
 - [ ] AppImage/Flatpak packaging (Linux)
 - [ ] Steam Deck optimization
 
@@ -300,7 +300,7 @@ Contributions are welcome! Areas needing help:
 ### Medium Priority
 4. **INI parser**: Full read/write support on Linux
 5. **Friends list**: Cross-platform injection method
-6. **Localization**: Japanese/Italian translations
+6. **Localization**: Italian/English translations
 
 ### Development Workflow
 
