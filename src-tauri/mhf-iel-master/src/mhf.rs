@@ -753,7 +753,7 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
     //---------------------------------------------------------------------
     let ini_path_cstr = find_ini_file(&mhf_folder)?;
     let ini_file      = PCSTR(ini_path_cstr.as_ptr() as _);
-    let ini_full      = ini_path_cstr.to_bytes_with_nul();     // absolute path + NUL
+    let _ini_full      = ini_path_cstr.to_bytes_with_nul();     // absolute path + NUL
 
     //---------------------------------------------------------------------
     // 4. Select client layout & build the version-specific data structure

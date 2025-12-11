@@ -6,8 +6,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "ButterClient",
-    "version": "0.1.0"
+    "productName": "Monster Hunter Frontier Z Launcher",
+    "version": "1.4.5"
   },
   "tauri": {
     "bundle": {
@@ -25,7 +25,7 @@
     },
     "windows": [
       {
-        "title": "MHF-Z ButterClient",
+        "title": "MHF-Z Launcher",
         "fullscreen": false,
         "resizable": false,
         "visible": false,

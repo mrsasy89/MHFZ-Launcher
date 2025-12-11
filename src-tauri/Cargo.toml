@@ -27,6 +27,7 @@ tokio-util = { version = "0.7", features = [] }
 tauri = { version = "1.5", features = ["api-all"] }
 tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+dirs = "5"
 
 # mhf-iel = { git = "https://github.com/rockisch/mhf-iel.git", rev = "dc7a4a982a5d3263bb2859a46ebb7ba9ab198f69" }
 mhf-iel = { path = "./mhf-iel-master" }

@@ -218,7 +218,7 @@ function srvTypeSfx(e) {
           <img draggable="false" :key="launcherHeaderUrl" :src="launcherHeaderUrl" @error="e => (e.target.src = fallbackLauncherHeader)"/>
           <div class="absolute">
             <div class="relative bottom-[45px] left-[350px] text-[#dcdcdc]">
-              release ver. 1.4.4
+              release ver. 1.4.5
             </div>
           </div>
           <div
@@ -328,7 +328,7 @@ function srvTypeSfx(e) {
       <img :src="capcomUrl" :key="capcomUrl" @error="e => (e.target.src = fallbackcapcomUrl)" class="object-contain" draggable="false" />
       <img :src="cogUrl" :key="cogUrl" @error="e => (e.target.src = fallbackcogUrl)" class="object-contain" draggable="false" />
       <div class="text-[#a0a0a0] text-sm">
-        LilButter™
+        ©CAPCOM CO., LTD. ALL RIGHTS RESERVED.
       </div>
       <div class="grow text-right">
         <span v-if="recentLog" :class="recentLog.level">

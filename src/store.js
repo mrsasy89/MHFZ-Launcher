@@ -22,8 +22,8 @@ import {
 
 import fallbackCog            from '/classic/cog.png';
 import fallbackCapcom         from '/classic/capcom.png';
-import fallbackLauncherHeader from '/classic/launcher-headerALT3.png';
-import fallbackBackground     from '/src/backgroundALT3.jpg';
+import fallbackLauncherHeader from '/classic/launcher-header.png';
+import fallbackBackground     from '/classic/background.jpg';
 
 const storePrivate = reactive({
   endpoints: [],
@@ -246,10 +246,6 @@ export const effectiveBanners = computed(() =>
         {
           src: "banners/BannerWelcome.png",
           link: "https://mhf-zbutterlogs.netlify.app/butterclient",
-        },
-        {
-          src: "banners/BannerShow1.png",
-          link: "https://mhf-zbutterlogs.netlify.app/butterclient",
         }
       ]
 );
@@ -257,7 +253,7 @@ export const effectiveBanners = computed(() =>
 // ---------------- Built-in fallback messages ----------------
 const FALLBACK_MESSAGES = [
   {
-    message: "Welcome to ButterClient! Click here for info.",
+    message: "Welcome to Monster Hunter Frontier Z Launcher!",
     date:    Date.now() / 1000,   // seconds since epoch
     link:    "https://mhf-zbutterlogs.netlify.app/butterclient#ButterClient/About.html",
     kind:    1                    // show in Announcements column
@@ -310,7 +306,7 @@ export async function initStore() {
   const data = await handleInvoke("initial_data");
 
   // regular launcher state
-  storeMut.style         = data.style;
+  storeMut.style         = CLASSIC_STYLE; // ignora data.style
   storeMut.locale        = data.locale;
   storeMut.username      = data.username;
   storeMut.password      = data.password;

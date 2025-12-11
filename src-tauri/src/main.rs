@@ -1,8 +1,9 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+            windows_subsystem = "windows"
 )]
-#![feature(iterator_try_collect)]
+// Disabilitata su stable / Linux
+// #![feature(iterator_try_collect)]
 
 mod config;
 mod endpoint;
@@ -12,6 +13,9 @@ mod settings;
 mod store;
 mod user;
 mod manifest;
+
+#[cfg(target_os = "linux")]
+mod lib_linux;
 
 use std::{
     collections::HashMap,
@@ -1125,16 +1129,37 @@ fn main() {
             }
         };
         if run {
-            match mhf_iel::run(config).unwrap() {
-                102 => {}
-                code => {
-                    info!("exited with code {}", code);
+            #[cfg(target_os = "windows")]
+            {
+                match mhf_iel::run(config).unwrap() {
+                    102 => {}
+                    code => {
+                        info!("exited with code {}", code);
+                        break;
+                    }
+                };
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                use std::path::PathBuf;
+
+                let game_folder: PathBuf = config
+                .mhf_folder
+                .clone()
+                .unwrap_or_else(|| std::env::current_dir().unwrap());
+
+                let cfg_linux = lib_linux::MhfConfigLinux { game_folder };
+
+                if let Err(e) = lib_linux::run_linux(cfg_linux) {
+                    info!("Linux run_linux error: {}", e);
                     break;
                 }
-            };
+            }
         } else {
             break;
         }
     }
     info!("app exit");
 }
+

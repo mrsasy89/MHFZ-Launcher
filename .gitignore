@@ -1,0 +1,24 @@
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Tauri
+src-tauri/target/
+src-tauri/WixTools/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Config & Secrets
+*.log
+config.json
+ButterVersion.txt
+ButterClient/
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,5 +1,5 @@
-# ButterClient
-Custom Launcher for mhfz by LilButter
+# MHFZ-Launcher
+Custom Launcher for ButterClient
 ________________________________________________________________________________________________________________________________________
 
 
@@ -11,7 +11,7 @@ Under extra is the Tent feature <- not required by anymeans nor did I make it. I
 
 ________________________________________________________________________________________________________________________________________
 
-ButterClient: Things that still need to be done/added
+MHFZ-Launcher: Things that still need to be done/added
 
 Frontend:
 

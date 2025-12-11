@@ -89,36 +89,41 @@ fn get_changed_paths<'a>(
     patcher_content: &'a str,
     game_folder: &Path,
 ) -> Result<Vec<&'a str>, &'static str> {
-    patcher_content
-        .lines()
-        .filter_map(|line| {
-            let Some((patcher_hash, mut patcher_path)) = line.split_once('\t') else {
-                return Some(Err(NETWORK_ERROR));
-            };
-            patcher_path = patcher_path.trim_start_matches('/');
-            let client_path = game_folder.join(patcher_path);
+    let mut result = Vec::new();
 
-            info!(
-                "files: {} {} {}",
-                game_folder.to_str().unwrap(),
-                &patcher_path,
-                &client_path.to_str().unwrap()
-            );
+    for line in patcher_content.lines() {
+        let Some((patcher_hash, mut patcher_path)) = line.split_once('\t') else {
+            return Err(NETWORK_ERROR);
+        };
+        patcher_path = patcher_path.trim_start_matches('/');
+        let client_path = game_folder.join(patcher_path);
 
-            if let Ok(mut file) = fs::File::open(&client_path) {
-                let mut hasher = sha2::Sha256::new();
-                if io::copy(&mut file, &mut hasher).is_ok() {
-                    let client_hash = format!("{:x}", hasher.finalize());
-                    info!("hashes: {} {}", patcher_hash, client_hash);
-                    if patcher_hash == client_hash {
-                        return None;
-                    }
-                };
-            };
-            Some(Ok(patcher_path))
-        })
-        .try_collect()
-        .or(Err(NETWORK_ERROR))
+        info!(
+            "files: {} {} {}",
+            game_folder.to_str().unwrap(),
+              &patcher_path,
+              &client_path.to_str().unwrap()
+        );
+
+        let mut changed = true;
+
+        if let Ok(mut file) = fs::File::open(&client_path) {
+            let mut hasher = sha2::Sha256::new();
+            if io::copy(&mut file, &mut hasher).is_ok() {
+                let client_hash = format!("{:x}", hasher.finalize());
+                info!("hashes: {} {}", patcher_hash, client_hash);
+                if patcher_hash == client_hash {
+                    changed = false;
+                }
+            }
+        }
+
+        if changed {
+            result.push(patcher_path);
+        }
+    }
+
+    Ok(result)
 }
 
 async fn download_changed_paths(
