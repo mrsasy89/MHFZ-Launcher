@@ -17,7 +17,7 @@ graph TD
     
     style A fill:#90EE90
     style B fill:#FFD700
-    style C fill:#FFD700
+    style C fill:#90EE90
     style D fill:#87CEEB
     style E fill:#87CEEB
 ```
@@ -26,6 +26,70 @@ graph TD
 - 🟩 Verde: Completato
 - 🟨 Giallo: In corso (priorità)
 - 🟦 Azzurro: Pianificato
+
+---
+
+## 🎯 Step 5: Server Predefinito Erupe ✅ COMPLETATO
+
+**Priorità**: 🔴 CRITICA  
+**Tempo effettivo**: 15 minuti  
+**Stato**: ✅ Testato e funzionante
+
+### 5.1 Codice Finale (TESTATO)
+
+**File:** `src-tauri/src/config.rs`
+
+```rust
+#![allow(clippy::needless_update)]
+use crate::Endpoint;
+
+pub const MODERN_STYLE: u32 = 0;
+pub const CLASSIC_STYLE: u32 = 1;
+
+pub const DEFAULT_SERVERLIST_URL: &str =
+    "NOT USED UNLESS SPECIFIED BY ADMIN=SERVERIP/serverlist.json";
+pub const DEFAULT_MESSAGELIST_URL: &str =
+    "NOT USED UNLESS SPECIFIED BY ADMIN=SERVERIP/messagelist.json";
+
+pub fn get_default_endpoints() -> Vec<Endpoint> {
+    vec![
+        Endpoint {
+            name: "Avalanche".into(),
+            url: "http://avalanchemhfz.ddns.net".into(),
+            launcher_port: Some(9010),
+            game_port: Some(53310),
+            version: mhf_iel::MhfVersion::ZZ,
+            is_remote: true,
+            ..Default::default()
+        },
+        Endpoint {
+            name: "Offline-Mode".into(),
+            url: "OFFLINEMODE".into(),
+            is_remote: true,
+            ..Default::default()
+        },
+    ]
+}
+```
+
+### ✅ Test Completati
+
+- ✅ Compilazione senza errori
+- ✅ UI carica correttamente
+- ✅ Server "Avalanche" visibile nel dropdown
+- ✅ Login al server funzionante
+- ✅ Character list caricata (Kyuseishu HR7 GR110)
+- ✅ Nessun crash
+
+### 📊 Parametri Server Avalanche
+
+| Parametro | Valore | Note |
+|-----------|--------|------|
+| **Nome** | Avalanche | Display name nel launcher |
+| **URL** | `http://avalanchemhfz.ddns.net` | Include `http://` |
+| **Launcher Port** | 9010 | Porta per patch/login server |
+| **Game Port** | 53310 | Porta per connessione in-game |
+| **Versione** | ZZ | Monster Hunter Frontier Z |
 
 ---
 
@@ -252,9 +316,11 @@ npm run tauri:dev
 **Test 3: Login + Character Select**
 ```bash
 # 1. Apri launcher
-# 2. Inserisci credenziali Erupe
-# 3. Seleziona personaggio
-# 4. Verifica log nel terminale
+# 2. Server "Avalanche" già selezionato
+# 3. Inserisci credenziali
+# 4. Seleziona personaggio
+# 5. Click "START GAME"
+# 6. Verifica log nel terminale
 ```
 
 **Log attesi:**
@@ -273,7 +339,7 @@ npm run tauri:dev
 **Criteri successo:**
 - ✅ Processo Wine parte
 - ✅ Finestra di gioco appare
-- ✅ Connessione al server Erupe
+- ✅ Connessione al server Avalanche
 - ✅ Nessun crash al login
 
 **Test 5: Exit Codes**
@@ -335,136 +401,9 @@ winetricks dotnet48 vcrun2019
 
 ---
 
-## 🎯 Step 5: Server Predefinito Erupe
-
-**Priorità**: 🔴 CRITICA  
-**Tempo stimato**: 15 minuti  
-**Dipendenze**: Nessuna
-
-### 5.1 Modificare `config.rs`
-
-**File:** `src-tauri/src/config.rs`
-
-#### 📝 Codice Completo
-
-```rust
-#![allow(clippy::needless_update)]
-use crate::Endpoint;
-
-pub const MODERN_STYLE: u32 = 0;
-pub const CLASSIC_STYLE: u32 = 1;
-
-pub const DEFAULT_SERVERLIST_URL: &str =
-    "NOT USED UNLESS SPECIFIED BY ADMIN=SERVERIP/serverlist.json";
-pub const DEFAULT_MESSAGELIST_URL: &str =
-    "NOT USED UNLESS SPECIFIED BY ADMIN=SERVERIP/messagelist.json";
-
-pub fn get_default_endpoints() -> Vec<Endpoint> {
-    vec![
-        // ⭐ Server Erupe principale
-        Endpoint {
-            name: "Avalanche MHFZ (Erupe)".into(),
-            url: "avalanchemhfz.ddns.net".into(),
-            launcher_port: Some(8094),  // Patch server port
-            game_port: Some(53310),     // Game server port
-            version: mhf_iel::MhfVersion::ZZ,
-            is_remote: true,
-            ..Default::default()
-        },
-        // 🛠️ Fallback: Offline Mode
-        Endpoint {
-            name: "Offline-Mode".into(),
-            url: "OFFLINEMODE".into(),
-            is_remote: true,
-            ..Default::default()
-        },
-    ]
-}
-```
-
----
-
-### 5.2 Test Locali
-
-#### Test 1: Verifica Server Predefinito
-
-```bash
-# Rebuild del progetto
-cargo build --release
-
-# Avvia launcher
-npm run tauri:dev
-```
-
-**UI Check:**
-- ✅ Dropdown server mostra "Avalanche MHFZ (Erupe)" come prima opzione
-- ✅ "Offline-Mode" è presente come seconda opzione
-- ✅ Nessun errore in console
-
-#### Test 2: Connessione Server
-
-```bash
-# Nel launcher:
-# 1. Server già selezionato: "Avalanche MHFZ (Erupe)"
-# 2. Inserisci username/password
-# 3. Click "Login"
-```
-
-**Criteri successo:**
-- ✅ Connessione al server Erupe
-- ✅ Lista personaggi caricata
-- ✅ Nessun errore "server not found"
-
-#### Test 3: Persistenza Configurazione
-
-```bash
-# 1. Chiudi launcher
-# 2. Riapri launcher
-# 3. Verifica che "Avalanche MHFZ" sia ancora selezionato
-```
-
----
-
-### 5.3 Configurazione Multi-Server (Opzionale)
-
-Se in futuro serve aggiungere altri server:
-
-```rust
-pub fn get_default_endpoints() -> Vec<Endpoint> {
-    vec![
-        Endpoint {
-            name: "Avalanche MHFZ (Main)".into(),
-            url: "avalanchemhfz.ddns.net".into(),
-            launcher_port: Some(8094),
-            game_port: Some(53310),
-            version: mhf_iel::MhfVersion::ZZ,
-            is_remote: true,
-            ..Default::default()
-        },
-        Endpoint {
-            name: "Localhost (Test)".into(),
-            url: "127.0.0.1".into(),
-            launcher_port: Some(8080),
-            game_port: Some(54001),
-            version: mhf_iel::MhfVersion::ZZ,
-            is_remote: false,  // ⚠️ Local server
-            ..Default::default()
-        },
-        Endpoint {
-            name: "Offline-Mode".into(),
-            url: "OFFLINEMODE".into(),
-            is_remote: true,
-            ..Default::default()
-        },
-    ]
-}
-```
-
----
-
 ## 🔧 Step 6: INI Parser Completo (Enhancement)
 
-**Priorità**: 🟬 MEDIA  
+**Priorità**: 🟦 MEDIA  
 **Tempo stimato**: 1 ora  
 **Dipendenze**: `configparser` crate
 
@@ -557,7 +496,7 @@ pub fn set_setting(path: &Path, name: &str, value: Value) -> Result<(), String> 
 
 ```bash
 # 1. Crea branch feature
-git checkout -b feature/step-4-wine-launcher
+git checkout -b feature/step-X-description
 
 # 2. Implementa modifiche
 # (codice qui)
@@ -569,27 +508,20 @@ npm run tauri:dev
 # ... test manuali ...
 
 # 4. Commit
-git add src-tauri/src/lib_linux.rs
-git add src-tauri/src/main.rs
-git commit -m "feat(linux): implement Wine/Proton game launcher
+git add <files>
+git commit -m "feat(scope): description
 
-- Add lib_linux.rs with Wine process spawning
-- Detect wine/wine64 automatically
-- Handle WINEPREFIX environment variable
-- Support mhf.exe, mhfo.dll, mhfo-hd.dll detection
-- Add comprehensive error handling
+- Bullet point 1
+- Bullet point 2
 
 Tested on:
-- Arch Linux with Wine 9.0
-- Game launches successfully
-- Exit codes handled correctly"
+- OS with version
+- Test results"
 
 # 5. Push branch
-git push origin feature/step-4-wine-launcher
+git push origin feature/step-X-description
 
 # 6. Crea Pull Request su GitHub
-# Titolo: "feat(linux): Implement Wine/Proton game launcher"
-# Descrizione: vedi template sotto
 ```
 
 ### Template Pull Request
@@ -597,37 +529,28 @@ git push origin feature/step-4-wine-launcher
 ```markdown
 ## 🎯 Descrizione
 
-Implementa il launcher Wine/Proton per avviare MHFZ su Linux.
+[Descrizione delle modifiche]
 
 ## ✅ Modifiche
 
-- 🆕 Nuovo file: `src-tauri/src/lib_linux.rs`
-- ♻️ Modificato: `src-tauri/src/main.rs` (blocco Linux)
+- 🆕 Nuovo file: `path/to/file`
+- ♻️ Modificato: `path/to/file`
 
 ## 🧪 Funzionalità
 
-- Rileva automaticamente `wine` o `wine64`
-- Supporta env var `WINEPREFIX` e `WINE`
-- Trova automaticamente l'eseguibile (`mhf.exe`, `mhfo.dll`, `mhfo-hd.dll`)
-- Gestione exit codes (incluso codice 102 per restart)
-- Logging dettagliato per debugging
+- Feature 1
+- Feature 2
 
 ## 🧑‍💻 Testing
 
 ### Ambiente di Test
-- **OS**: Arch Linux (kernel 6.x)
-- **Wine**: 9.0 (wine64)
-- **Prefix**: `~/Games/MHFZ/pfx`
-- **Server**: Avalanche MHFZ (Erupe)
+- **OS**: Arch Linux
+- **Wine**: 9.0
+- **Server**: Avalanche MHFZ
 
 ### Test Eseguiti
-- ✅ Compilazione senza errori
-- ✅ Launcher si apre correttamente
-- ✅ Login al server Erupe
-- ✅ Selezione personaggio
-- ✅ Game launch con Wine
-- ✅ Connessione al server di gioco
-- ✅ Exit pulito senza crash
+- ✅ Test 1
+- ✅ Test 2
 
 ### Screenshot
 
@@ -639,36 +562,31 @@ Implementa il launcher Wine/Proton per avviare MHFZ su Linux.
 - [x] Test manuali completati
 - [x] Documentazione aggiornata
 - [x] Commit message segue conventional commits
-- [x] Nessun file sensibile committato
 
 ## 🔗 Issue Correlati
 
-Closes #1 (se esiste issue tracker)
+Closes #N
 
 ## 📌 Note
 
-- **Non** include friends list injection (da implementare separatamente)
-- Testato solo su Arch Linux, richiede test su Ubuntu/Debian
-- Prefix Wine deve essere configurato manualmente dall'utente
+[Note aggiuntive]
 ```
 
 ---
 
 ## 📅 Timeline Proposta
 
-| Step | Task | Tempo | Scadenza Proposta |
-|------|------|-------|-------------------|
-| 4.1 | Creare `lib_linux.rs` | 1h | Giorno 1 |
-| 4.2 | Test locali Wine launcher | 1h | Giorno 1 |
-| 4.3 | PR + review | 30min | Giorno 2 |
-| 5.1 | Modificare `config.rs` | 15min | Giorno 2 |
-| 5.2 | Test server predefinito | 15min | Giorno 2 |
-| 5.3 | PR + review | 15min | Giorno 2 |
-| 6.1 | Refactor INI parser | 1h | Giorno 3 |
-| 6.2 | Test read/write INI | 30min | Giorno 3 |
-| 6.3 | PR + review | 15min | Giorno 3 |
+| Step | Task | Tempo | Stato |
+|------|------|-------|-------|
+| 5.1 | Server Avalanche config | 15min | ✅ Completato |
+| 5.2 | Test server predefinito | 15min | ✅ Completato |
+| 4.1 | Creare `lib_linux.rs` | 1h | 🟨 Prossimo |
+| 4.2 | Test locali Wine launcher | 1h | 📅 Pianificato |
+| 4.3 | PR + review | 30min | 📅 Pianificato |
+| 6.1 | Refactor INI parser | 1h | 📅 Pianificato |
+| 6.2 | Test read/write INI | 30min | 📅 Pianificato |
 
-**Totale stimato**: ~5-6 ore di lavoro effettivo
+**Tempo rimanente stimato**: ~4 ore
 
 ---
 
