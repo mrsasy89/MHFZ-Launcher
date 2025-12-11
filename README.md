@@ -428,11 +428,11 @@ This project is for **educational purposes** and **preservation** of a discontin
 
 ## 🎯 Project Status
 
-**Current Version**: 0.1.0 (Pre-release)  
+**Current Version**: 1.4.4 (Pre-release)  
 **Last Updated**: December 11, 2025  
 **Maintainer**: [@mrsasy89](https://github.com/mrsasy89)
 
-**Next Milestone**: v0.2.0 - Wine launcher implementation (Step 4)  
+**Next Milestone**: v1.4.5 - Wine launcher implementation (Step 4)  
 **ETA**: ~1 week
 
 ---
