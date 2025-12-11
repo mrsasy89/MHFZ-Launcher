@@ -49,9 +49,9 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ### 📅 Roadmap (Phase 4)
 
 - [ ] Auto-update system
-- [ ] Multi-language support (EN/IT)
+- [ ] Multi-language support (EN/JP)
 - [ ] AppImage/Flatpak packaging (Linux)
-- [ ] Steam Deck optimization
+- [ ] Steam OS optimization
 
 **Progress**: `██████████████░░░░░░` 70%
 
@@ -295,12 +295,12 @@ Contributions are welcome! Areas needing help:
 ### High Priority
 1. **Game launch (Linux)**: Complete Wine wrapper in `src-tauri/src/lib_linux.rs`
 2. **Testing**: Multi-distro compatibility (Ubuntu, Fedora, Debian)
-3. **Steam Deck**: Optimization and testing
+3. **Steam OS**: Optimization and testing
 
 ### Medium Priority
 4. **INI parser**: Full read/write support on Linux
 5. **Friends list**: Cross-platform injection method
-6. **Localization**: Italian/English translations
+6. **Localization**: Japan/English translations
 
 ### Development Workflow
 
@@ -345,10 +345,10 @@ See [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for detailed step-by-s
 |----------|--------|-------|
 | **Arch Linux** | ✅ Working | Wine 9.0, primary dev environment |
 | **Windows 10** | ✅ Working | Native build |
-| **Windows 11** | 🧪 Untested | Should work (Windows 10 compatible) |
+| **Windows 11** | ✅ Working | Should work (Windows 10 compatible) |
 | **Ubuntu 22.04** | 🧪 Untested | Should work (needs testing) |
 | **Debian 12** | 🧪 Untested | Should work (needs testing) |
-| **Steam Deck** | 🧪 Untested | Planned support |
+| **Steam OS** | 🧪 Untested | Planned support |
 
 ### Test Coverage
 
@@ -397,7 +397,7 @@ This project is a fork of [ButterClient](https://github.com/RuriYoshinova/Butter
 - **Issues**: [GitHub Issues](https://github.com/mrsasy89/MHFZ-Launcher/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/mrsasy89/MHFZ-Launcher/discussions)
 - **Documentation**: [docs/](docs/) folder
-- **Avalanche Discord**: (link if available)
+- **Monster Hunter Old Gen**: [this link](https://discord.gg/UdQ4cy5TbU)
 
 ### FAQ
 
