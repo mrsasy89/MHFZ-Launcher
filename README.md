@@ -44,7 +44,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ### 🚧 In Progress (Phase 3 - Final Integration)
 
 - [x] ~~Game launch via Wine~~ ✅ **WORKING!**
-- [x] ~~mhf-iel integration ~~ ✅ **WORKING!**
+- [x] ~~mhf-iel integration~~ ✅ **WORKING!**
 - [ ] **Friends list injection** 🔥 NEXT (Linux-compatible method) 
 - [ ] Full INI parser (read/write on Linux)
 - [ ] Offline patcher system
