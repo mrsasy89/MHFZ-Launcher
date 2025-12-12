@@ -44,8 +44,8 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ### 🚧 In Progress (Phase 3 - Final Integration)
 
 - [x] ~~Game launch via Wine~~ ✅ **WORKING!**
-- [ ] **mhf-iel integration** 🔥 NEXT (bypasses CAPCOM launcher)
-- [ ] Friends list injection (Linux-compatible method)
+- [x] ~~mhf-iel integration (bypasses CAPCOM launcher)~~ ✅ **WORKING!**
+- [ ] **Friends list injection** 🔥 NEXT (Linux-compatible method) 
 - [ ] Full INI parser (read/write on Linux)
 - [ ] Offline patcher system
 
@@ -54,7 +54,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - [ ] Auto-update system
 - [ ] Multi-language support (EN/JP)
 - [ ] AppImage/Flatpak packaging (Linux)
-- [ ] Steam Deck optimization
+- [ ] Steam OS optimization
 
 **Progress**: `███████████████░░░░░` 75%
 
@@ -76,7 +76,6 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ### 🚧 Known Issues
 
 - ⚠️ GTK backend error on game exit (cosmetic, non-blocking)
-- 🔄 mhf-iel integration pending (currently uses mhf.exe wrapper)
 - 🔄 Friends list not yet injected on Linux
 
 ### 📊 Test Results
@@ -285,7 +284,7 @@ Place MHFZ game files in your chosen directory:
 
 ```
 ~/Games/MHFZ/
-├── mhf.exe          # Main executable (F5) or
+├── mhf-iel.exe          # Main executable (F5) or
 ├── mhfo.dll         # SD client (ZZ) or
 ├── mhfo-hd.dll      # HD client (ZZ) ← Recommended
 ├── mhf.ini          # Game configuration
