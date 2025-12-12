@@ -284,7 +284,7 @@ Place MHFZ game files in your chosen directory:
 
 ```
 ~/Games/MHFZ/
-├── mhf-iel.exe          # Main executable (F5) or
+├── mhf-iel-cli.exe  # Main executable from https://github.com/mrsasy89/mhf-iel
 ├── mhfo.dll         # SD client (ZZ) or
 ├── mhfo-hd.dll      # HD client (ZZ) ← Recommended
 ├── mhf.ini          # Game configuration
