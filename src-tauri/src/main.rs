@@ -1142,19 +1142,59 @@ fn main() {
 
             #[cfg(target_os = "linux")]
             {
-                use std::path::PathBuf;
+                // Prepara config per mhf-iel
+                let iel_config = lib_linux::MhfIelConfig {
+                    char_id: config.char_id,
+                    char_name: config.char_name.clone(),
+                    char_hr: config.char_hr,
+                    char_gr: config.char_gr,
+                    char_ids: config.char_ids.clone(),
+                    char_new: config.char_new,
+                    user_token_id: config.user_token_id,
+                    user_token: config.user_token.clone(),
+                    username: config.user_name.clone(),              // ← FIX: user_name, non username
+                    user_password: config.user_password.clone(),
+                    user_rights: config.user_rights,
+                    server_host: config.server_host.clone(),
+                    server_port: config.server_port,
+                    entrance_count: config.entrance_count,
+                    current_ts: config.current_ts as u64,            // ← FIX: cast u32 -> u64
+                    expiry_ts: config.expiry_ts as u64,              // ← FIX: cast u32 -> u64
+                    notices: config.notices.iter().map(|n| serde_json::json!({
+                        "message": n.data,
+                        "flags": n.flags
+                    })).collect(),
+                    mez_event_id: config.mez_event_id,
+                    mez_start: config.mez_start as u64,              // ← FIX: cast u32 -> u64
+                    mez_end: config.mez_end as u64,                  // ← FIX: cast u32 -> u64
+                    mez_solo_tickets: config.mez_solo_tickets,
+                    mez_group_tickets: config.mez_group_tickets,
+                    mez_stalls: config.mez_stalls.iter()
+                    .map(|s| format!("{:?}", s))                 // ← FIX: convert struct to string
+                    .collect(),
+                    version: format!("{:?}", config.version),        // ← FIX: MhfVersion enum to string
+                };
 
-                let game_folder: PathBuf = config
-                .mhf_folder
-                .clone()
+                // Salva config
+                lib_linux::set_mhf_iel_config(iel_config);
+
+                // Lancia
+                let game_folder = config.mhf_folder.clone()
                 .unwrap_or_else(|| std::env::current_dir().unwrap());
 
-                let cfg_linux = lib_linux::MhfConfigLinux { game_folder };
+                let cfg_linux = lib_linux::MhfConfigLinux {
+                    game_folder
+                };
 
-                if let Err(e) = lib_linux::run_linux(cfg_linux) {
-                    info!("Linux run_linux error: {}", e);
-                    break;
+                match lib_linux::run_linux(cfg_linux) {
+                    Ok(_) => {
+                        println!("✅ Gioco chiuso correttamente");
+                    }
+                    Err(e) => {
+                        eprintln!("❌ Errore lancio: {:?}", e);
+                    }
                 }
+                break;
             }
         } else {
             break;

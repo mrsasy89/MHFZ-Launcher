@@ -78,3 +78,10 @@ coverage/
 # Cargo.lock
 # package-lock.json
 # yarn.lock
+
+# Downloaded game data (patch files)
+dat/
+src-tauri/dat/
+
+# Prototype/WIP files (not used)
+src-tauri/helper-win.rs
