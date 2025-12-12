@@ -474,7 +474,7 @@ See [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for detailed step-by-s
 | **Windows 11** | ✅ Working | Windows 10 compatible |
 | **Ubuntu 22.04** | 🧪 Untested | Should work (needs testing) |
 | **Debian 12** | 🧪 Untested | Should work (needs testing) |
-| **Steam Deck** | 🧪 Untested | Planned support |
+| **Steam OS** | 🧪 Untested | Planned support |
 
 ### Test Coverage
 
@@ -486,9 +486,9 @@ See [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for detailed step-by-s
 - ✅ **Game launch (Linux via Wine)** 🎉
 - ✅ **In-game connection** 🎉
 - ✅ **Gameplay** 🎉
-- 🚧 mhf-iel integration (next milestone)
+- ✅ mhf-iel integration
+- 🚧 Friends list (next milestone)
 - 🚧 Patching system
-- ❌ Friends list (not yet implemented)
 
 See [TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md) for comprehensive test procedures.
 
