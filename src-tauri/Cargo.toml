@@ -1,10 +1,10 @@
 [package]
 name = "app"
-version = "0.1.0"
-description = "ButterClient"
-authors = ["you"]
-license = ""
-repository = ""
+version = "1.4.5"
+description = "MHFZ-Launcher"
+authors = ["mrsasy89"]
+license = "GPL v3"
+repository = "https://github.com/mrsasy89/MHFZ-Launcher"
 default-run = "app"
 edition = "2021"
 rust-version = "1.57"

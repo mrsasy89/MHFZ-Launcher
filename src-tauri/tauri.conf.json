@@ -26,6 +26,8 @@
     "windows": [
       {
         "title": "MHF-Z Launcher",
+        "width": 1124,
+        "height": 600,
         "fullscreen": false,
         "resizable": false,
         "visible": false,
