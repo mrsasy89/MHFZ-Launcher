@@ -197,7 +197,7 @@ function srvTypeSfx(e) {
 	  </div>
 	  <div class="col-span-2 flex gap-3 px-[30px] items-center overflow-hidden absolute top-[0px] right-[30px] z-[0]">
 	    <img :src="launcherHeaderUrl" :key="launcherHeaderUrl" @error="e => (e.target.src = fallbacklauncherHeaderUrl)" class="object-contain w-[400px] h-[100px]" draggable="false" />
-		<a class="absolute bottom-[22px] right-[50px] text-[15px]">release ver. 1.4.4</a>
+		<a class="absolute bottom-[22px] right-[50px] text-[15px]">release ver. 1.4.6</a>
 	  </div>
     </div>
   </div>

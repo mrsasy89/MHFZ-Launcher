@@ -12,7 +12,7 @@ Supports Windows natively and Linux via Wine integration.
 
 ## 📋 Overview
 
-MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Frontier Z**, designed to work with private servers (primarily [Erupe](https://github.com/ErupeServer/Erupe)). Built with Rust (Tauri backend) + Vue.js frontend.
+MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Frontier Z**, designed to work with private servers (primarily [Erupe](https://github.com/mrsasy89/Erupe)). Built with Rust (Tauri backend) + Vue.js frontend.
 
 ### 🌟 Key Features
 
@@ -23,12 +23,13 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - 🔐 **Secure**: Token-based authentication
 - 📦 **Auto-patcher**: Server-side patch management
 - 🌐 **Avalanche Server**: Pre-configured for immediate play
+- ⚙️ **Full Settings Control**: Game configuration (graphics, audio, controls) **NEW!** ✨
 
 ---
 
 ## 🛠️ Current Development Status
 
-### ✅ Completed (85% - Phase 1-3)
+### ✅ Completed (90% - Phase 1-3)
 
 - [x] Backend refactoring (removed Windows-only dependencies)
 - [x] Cross-platform INI parsing (conditional compilation)
@@ -40,20 +41,21 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - [x] Login/authentication system
 - [x] **Wine launcher core (lib_linux.rs)** 
 - [x] **Successful game launch on Linux**
-
-### 🚧 In Progress (Phase 3 - Final Integration)
-
-- [x] Game launch via Wine ✅ **WORKING!**
-- [x] mhf-iel integration ✅ **WORKING!**
-- [x] Friends list injection ✅ **WORKING!** 🎉 NEW
-- [ ] **Full INI parser** 🔥 NEXT (read/write on Linux)
+- [x] **Game launch via Wine** ✅ WORKING!
+- [x] **mhf-iel integration** ✅ WORKING!
+- [x] **Friends list injection** ✅ WORKING! 🎉
+- [x] **Full INI parser** ✅ **COMPLETED!** 🎉 **NEW!**
+  - Cross-platform read/write (Windows & Linux)
+  - Game settings persistence (graphics, audio, controls)
+  - Automatic line-ending detection (CRLF/LF)
+  - `mhf.ini` auto-generation if missing
 
 ### 📅 Roadmap (Phase 4)
 
 - [ ] AppImage/Flatpak packaging (Linux)
 - [ ] Steam OS optimization
 
-**Progress**: `█████████████████░░░` 85%
+**Progress**: `██████████████████░░` 90%
 
 ---
 
@@ -72,6 +74,8 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 | **mhf-iel integration** | ✅ Working | Direct DLL injection |
 | **config.json generation** | ✅ Working | 25+ fields |
 | **Friends list Fix** | ✅ Working | Fix mhf-iel integrate |
+| **Game Settings (mhf.ini)** | ✅ **Working!** | Full read/write ✨ **NEW!** |
+
 
 ### 🚧 Known Issues
 
@@ -79,7 +83,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 ### 📊 Test Results
 
-**Last test**: December 15, 2025  
+**Last test**: December 16, 2025  
 **Environment**: Arch Linux + Wine 10.20 + DXVK 2.7.1
 
 ```
@@ -91,8 +95,45 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ✅ Game started (bypassed CAPCOM launcher)
 ✅ In-game connection established
 ✅ Gameplay confirmed working
+✅ Game settings read/write working (mhf.ini) ← NEW!
 ✅ Clean exit (code 0)
 ```
+
+---
+
+## ⚙️ Game Settings Configuration **NEW!** ✨
+
+### Implemented Settings
+
+The launcher now **reads and writes** game settings from `mhf.ini` on **both Windows and Linux**:
+
+#### 🖥️ Display
+- ✅ **HD Version** (Graphics quality: Classic vs HD)
+- ✅ **Fullscreen Mode** (Windowed vs Fullscreen)
+- ✅ **Window Resolution** (Custom width/height)
+- ✅ **Fullscreen Resolution** (Monitor resolution)
+
+### Cross-Platform INI Parser
+
+**New in v1.5.0**: Custom Rust INI parser (`ini_parser.rs`) that:
+
+- ✅ **Preserves file format**: Maintains original line endings (CRLF on Windows, LF on Linux)
+- ✅ **Non-destructive**: Only modifies changed settings
+- ✅ **Auto-creates**: Generates default `mhf.ini` if missing
+- ✅ **Error handling**: Detailed logging for debugging
+- ✅ **Same code**: Identical behavior on Windows and Linux
+
+**Technical details**:
+```
+/ Example: Update graphics setting
+ini.set("VIDEO", "GRAPHICS_VER", if hd_mode { "1" } else { "0" });
+ini.set("SCREEN", "FULLSCREEN_MODE", if fullscreen { "1" } else { "0" });
+ini.save("mhf.ini")?; // Preserves original line endings
+
+```
+**Total configurable options**: 36 settings available in `mhf.ini`  
+**Currently exposed in UI**: 6 (graphics/display)  
+**Planned for next release**: 30 additional options
 
 ---
 
@@ -334,20 +375,107 @@ Stored in game folder, controls:
 ```
 src-tauri/
 ├── src/
-│   ├── main.rs              # Tauri entry point + state management
-│   ├── config.rs            # ✅ Server endpoints (Avalanche pre-configured)
-│   ├── settings.rs          # ✅ Cross-platform INI parser
-│   ├── endpoint.rs          # Server connection logic
-│   ├── patcher.rs           # Update system
-│   ├── server.rs            # HTTP client for auth/API
-│   └── lib_linux.rs         # ✅ Wine launcher (WORKING!)
-├── mhf-iel-master/          # Game launcher module
-│   └── src/
-│       ├── lib.rs           # Platform-specific entry
-│       ├── mhf.rs           # Windows native launcher
-│       └── linux.rs         # 🚧 Linux Wine wrapper (planned)
+│ ├── main.rs # Tauri entry point + state management
+│ ├── config.rs # ✅ Server endpoints (Avalanche pre-configured)
+│ ├── settings.rs # ✅ Cross-platform settings manager (UPDATED!)
+│ ├── ini_parser.rs # ✅ NEW: Custom INI parser (cross-platform)
+│ ├── endpoint.rs # Server connection logic
+│ ├── patcher.rs # Update system
+│ ├── server.rs # HTTP client for auth/API
+│ └── lib_linux.rs # ✅ Wine launcher (WORKING!)
+├── mhf-iel-master/ # Game launcher module
+│ └── src/
+│ ├── lib.rs # Platform-specific entry
+│ ├── mhf.rs # Windows native launcher
 └── Cargo.toml
+
+
 ```
+
+### INI Parser Architecture **NEW!**
+
+**File**: `src-tauri/src/ini_parser.rs`
+
+**Key features**:
+
+```
+pub struct IniFile {
+sections: Vec<String>, // Preserves order
+data: HashMap<String, Vec<(String, String)>>, // Section -> [(key, value)]
+line_ending: String, // "\r\n" or "\n"
+}
+
+impl IniFile {
+// Cross-platform file I/O
+pub fn from_file(path: &Path) -> Result<Self, String>;
+pub fn save(&self, path: &Path) -> Result<(), String>;
+
+// Settings manipulation
+pub fn get(&self, section: &str, key: &str) -> Option<String>;
+pub fn set(&mut self, section: &str, key: &str, value: &str);
+}
+
+// High-level helper
+pub fn apply_game_settings(
+ini_path: &Path,
+hd_version: bool,
+fullscreen: bool,
+window_w: u32,
+window_h: u32,
+fullscreen_w: u32,
+fullscreen_h: u32,
+) -> Result<(), String>;
+
+```
+
+**Why custom parser?**
+- ❌ **serde_ini**: Doesn't preserve order or formatting
+- ❌ **ini crate**: Destroys comments and structure
+- ✅ **Custom**: Full control over file preservation
+
+**Line ending detection**:
+
+```
+let line_ending = if content.contains("\r\n") {
+"\r\n".to_string() // Windows
+} else {
+"\n".to_string() // Linux/macOS
+};
+
+```
+
+### Frontend (Vue.js)
+```
+src/
+├── settings/
+│ ├── SettingsList.vue # ✅ Settings UI (UPDATED!)
+│ ├── SettingsCheckbox.vue # Checkbox component
+│ ├── SettingsItem.vue # Setting row wrapper
+│ └── SettingsButton.vue # Action buttons
+├── Classic.vue # Classic UI (default, CAPCOM style)
+├── Modern.vue # Modern UI (alternative)
+└── store.js # ✅ Vuex state (settings added)
+
+```
+
+**Settings flow**:
+
+```
+User changes setting in UI
+↓
+Vue component calls setSetting()
+↓
+Tauri command "set_setting" invoked
+↓
+Rust backend: settings::set_setting()
+↓
+INI parser writes to mhf.ini
+↓
+Setting persisted to disk ✅
+
+```
+
+---
 
 ### lib_linux.rs Implementation
 
@@ -418,10 +546,8 @@ Contributions are welcome! Areas needing help:
 2. **SteamOS**: Optimization and testing
 
 ### Medium Priority
-4. **INI parser**: Full read/write support on Linux
-5. **Friends list**: Cross-platform injection method
-6. **Localization**: Japanese/English translations
-7. **GTK exit crash**: Fix cosmetic error on game closure
+
+3. **GTK exit crash**: Fix cosmetic error on game closure
 
 ### Development Workflow
 
@@ -492,11 +618,10 @@ git push origin feature/mhf-iel-integration
 
 ## 📚 Related Projects
 
-- **[Erupe Server](https://github.com/ErupeServer/Erupe)** - Private server implementation
-- **[Avalanche MHFZ](http://avalanchemhfz.ddns.net:9010)** - Public Erupe server (pre-configured)
+- **[Erupe Server](https://github.com/mrsasy89/Erupe)** - Private server implementation
 - **[MHF Patch Server](https://github.com/mrsasy89/MHF-Patch-Server)** - Update distribution system
-- **[mhf-iel](https://github.com/rockisch/mhf-iel)** - IELess launcher (DLL injection)
-- **[ButterClient](https://github.com/RuriYoshinova/ButterClient)** - Original Windows-only launcher (upstream)
+- **[mhf-iel](https://github.com/mrsasy89/mhf-iel)** - IELess launcher (DLL injection)
+- **[ButterClient](https://github.com/LilButter/ButterClient)** - Original Windows-only launcher (upstream)
 
 ---
 
@@ -564,12 +689,13 @@ This project is for **educational purposes** and **preservation** of a discontin
 
 ## 🎯 Project Status
 
-**Current Version**: 1.4.5-beta (Linux Wine Integration)  
-**Last Updated**: December 12, 2025  
+**Current Version**: 1.4.6 (Cross-Platform Settings)  
+**Last Updated**: December 16, 2025  
 **Maintainer**: [@mrsasy89](https://github.com/mrsasy89)
 
 ### Recent Milestones 🎉
 
+- ✅ **December 16, 2025**: Full INI parser implementation (cross-platform) ✨
 - ✅ **December 15, 2025**: Friends list fixing
 - ✅ **December 14, 2025**: mhf-iel integration
 - ✅ **December 11, 2025**: Wine launcher successfully tested on Arch Linux
@@ -578,13 +704,14 @@ This project is for **educational purposes** and **preservation** of a discontin
 
 ### Next Milestone
 
-**v1.5.0 - Multi-distro testing (Ubuntu, Fedora, Debian, SteamOS)**
+**v1.4.7 - Multi-distro testing (Ubuntu, Fedora, Debian, SteamOS)**
   
-**ETA**: ~1 week
+**ETA**: ~1-2 week
 
 Goals:
 
 - [ ] Multi-distro testing (Ubuntu, Fedora, Debian, SteamOS)
+- [ ] AppImage packaging
 
 ---
 

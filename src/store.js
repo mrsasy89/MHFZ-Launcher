@@ -245,7 +245,7 @@ export const effectiveBanners = computed(() =>
     : [
         {
           src: "banners/BannerWelcome.png",
-          link: "https://mhf-zbutterlogs.netlify.app/butterclient",
+          link: "https://discord.gg/YdBsXmySkw",
         }
       ]
 );
@@ -255,13 +255,13 @@ const FALLBACK_MESSAGES = [
   {
     message: "Welcome to Monster Hunter Frontier Z Launcher!",
     date:    Date.now() / 1000,   // seconds since epoch
-    link:    "https://mhf-zbutterlogs.netlify.app/butterclient#ButterClient/About.html",
+    link:    "https://discord.gg/YdBsXmySkw",
     kind:    1                    // show in Announcements column
   },
   {
     message: "No server selected — offline mode.",
     date:    Date.now() / 1000,
-    link:    "https://mhf-zbutterlogs.netlify.app/butterclient#ButterClient/Add%20a%20Server.html",
+    link:    "https://discord.gg/2ZanUw5HCM",
     kind:    0                    // show in News column
   }
 ];

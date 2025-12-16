@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Monster Hunter Frontier Z Launcher",
-    "version": "1.4.5"
+    "version": "1.4.6"
   },
   "tauri": {
     "bundle": {
