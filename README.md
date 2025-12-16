@@ -510,7 +510,7 @@ This project is a fork of [ButterClient](https://github.com/LilButter/ButterClie
 
 ## 🙏 Credits
 
-- **Original ButterClient**: [RuriYoshinova](https://github.com/RuriYoshinova)
+- **Original ButterClient**: [LilButter](https://github.com/LilButter)
 - **Linux Port & mhf-iel Integration**: [mrsasy89](https://github.com/mrsasy89)
 - **mhf-iel**: [rockisch](https://github.com/rockisch) - IELess launcher (now integrated!)
 - **Avalanche Server**: Community-maintained Erupe instance
