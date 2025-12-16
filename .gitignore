@@ -73,6 +73,7 @@ config.json
 # Test coverage
 coverage/
 *.lcov
+*.launcher_output.txt
 
 # Lock files (optional - uncomment if needed)
 # Cargo.lock

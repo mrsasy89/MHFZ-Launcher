@@ -7,6 +7,7 @@ all(not(debug_assertions), target_os = "windows"),
 
 mod config;
 mod endpoint;
+mod ini_parser;
 mod patcher;
 mod server;
 mod settings;
