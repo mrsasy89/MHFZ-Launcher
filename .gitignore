@@ -79,3 +79,4 @@ coverage/
 # Cargo.lock
 # package-lock.json
 # yarn.lock
+launcher_output.txt
