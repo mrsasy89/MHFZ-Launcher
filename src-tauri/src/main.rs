@@ -1202,11 +1202,21 @@ fn main() {
 
                 let cfg_linux = lib_linux::MhfConfigLinux { game_folder };
 
-                if let Err(e) = lib_linux::run_linux(cfg_linux) {
-                    info!("Linux run_linux error: {}", e);
-                    break;
+                // ✅ Lancia il gioco e chiudi il launcher
+                match lib_linux::run_linux(cfg_linux) {
+                    Ok(_) => {
+                        info!("Game launched successfully");
+                        info!("Launcher closing...");
+                        break; // Esce dal loop e chiude il launcher
+                    }
+                    Err(e) => {
+                        error!("Failed to launch game: {}", e);
+                        // Mostra errore ma non chiudere, così l'utente vede il messaggio
+                        // (Opzionale: potresti aggiungere una finestra di errore)
+                    }
                 }
             }
+
         } else {
             break;
         }

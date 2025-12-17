@@ -36,38 +36,28 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     info!("Found game executable: {}", exe_name);
     info!("Starting game via Wine...");
 
-    // Usa Wine direttamente, NON Proton
+    // ✅ FIX: Spawn senza aspettare + chiudi launcher
     let mut cmd = Command::new("wine");
     cmd.current_dir(&config.game_folder)
     .arg(&mhf_iel_exe)
-    .env("WINEDEBUG", "-all");  // Disabilita output verboso di Wine
+    .env("WINEDEBUG", "-all");
 
     debug!("Command: wine {:?}", mhf_iel_exe);
     debug!("Working directory: {:?}", config.game_folder);
-    debug!("Environment: WINEDEBUG=-all");
 
-    info!("Game process starting...");
+    info!("Launching game and closing launcher...");
 
-    // Avvia il processo e attendi la chiusura
-    let mut child = cmd.spawn()?;
-    let status = child.wait()?;
-
-    // Log della chiusura
-    if status.success() {
-        info!("Game closed successfully");
-        info!("Exit code: 0");
-    } else {
-        match status.code() {
-            Some(code) => {
-                error!("Game closed with error code: {}", code);
-            }
-            None => {
-                error!("Game process terminated by signal");
-            }
+    // Lancia il gioco in background (NON aspettare!)
+    match cmd.spawn() {
+        Ok(_child) => {
+            info!("Game process started successfully");
+            info!("Launcher will now close");
+            // Il launcher si chiuderà e il gioco continua in background
+            Ok(())
+        }
+        Err(e) => {
+            error!("Failed to launch game: {}", e);
+            Err(e)
         }
     }
-
-    info!("=== Launcher shutdown complete ===");
-
-    Ok(())
 }
