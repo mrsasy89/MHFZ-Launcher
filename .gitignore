@@ -79,4 +79,9 @@ coverage/
 # Cargo.lock
 # package-lock.json
 # yarn.lock
+
+#log
 launcher_output.txt
+
+# Game Data
+game/

@@ -11,7 +11,7 @@
   },
   "tauri": {
     "bundle": {
-      "identifier": "ButterClient"
+      "identifier": "com.mrsasy89.mhfz-launcher"
     },
     "allowlist": {
       "all": true

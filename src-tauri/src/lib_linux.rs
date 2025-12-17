@@ -40,12 +40,17 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     let mut cmd = Command::new("wine");
     cmd.current_dir(&config.game_folder)
     .arg(&mhf_iel_exe)
-    .env("WINEDEBUG", "-all");
+    .env("WINEDEBUG", "-all")
+    .env("FONTCONFIG_PATH", "/etc/fonts")
+    .env("FONTCONFIG_FILE", "/etc/fonts/fonts.conf")
+    .env("XDG_DATA_DIRS", "/usr/share:/usr/local/share");
 
     debug!("Command: wine {:?}", mhf_iel_exe);
     debug!("Working directory: {:?}", config.game_folder);
 
     info!("Launching game and closing launcher...");
+    debug!("ENV FONTCONFIG_PATH: /etc/fonts");
+    debug!("ENV XDG_DATA_DIRS: /usr/share:/usr/local/share");
 
     // Lancia il gioco in background (NON aspettare!)
     match cmd.spawn() {
