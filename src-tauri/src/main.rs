@@ -488,7 +488,7 @@ async fn auth(
         .to_string();
 
     // ── identify active server (whose files sit on disk) ──────────────
-    let active_server = std::fs::read_to_string("ButterClient/active_server")
+    let active_server = std::fs::read_to_string("launcher_config/active_server")
         .unwrap_or_default()
         .trim()
         .to_string();
@@ -808,6 +808,48 @@ async fn patcher_stop(state: tauri::State<'_, TauriState>) -> Result<(), String>
     state_sync.cancel_shared.cancel();
     Ok(())
 }
+#[tauri::command]
+async fn check_first_run(state: tauri::State<'_, TauriState>) -> Result<bool, String> {
+    let state_sync = state.state_sync.lock().await;
+
+    // Se endpoints è vuoto, è il primo avvio
+    Ok(state_sync.endpoints.is_empty())
+}
+
+#[tauri::command]
+async fn complete_first_run_setup(
+    state: tauri::State<'_, TauriState>,
+    add_avalanche: bool,
+) -> Result<(), String> {
+    let mut state_sync = state.state_sync.lock().await;
+
+    if add_avalanche {
+        let avalanche = Endpoint {
+            url: "http://avalanchemhfz.ddns.net".into(),
+            name: "Avalanche".into(),
+            launcher_port: Some(9010),
+            game_port: Some(53310),
+            game_folder: None,
+            version: mhf_iel::MhfVersion::ZZ,
+            is_remote: true,
+        };
+
+        if !state_sync.remote_endpoints.contains(&avalanche) {
+            state_sync.remote_endpoints.insert(0, avalanche.clone());
+            state_sync.current_endpoint = avalanche;
+        }
+
+        let remote_endpoints = state_sync.remote_endpoints.clone();
+        let current_endpoint = state_sync.current_endpoint.clone();
+
+        state_sync.store.with(|s| {
+            s.set("remote_endpoints", remote_endpoints);
+            s.set("current_endpoint", current_endpoint);
+        });
+    }
+
+    Ok(())
+}
 
 fn handle_style(window: &mut Window, style: u32) {
     match style {
@@ -910,6 +952,7 @@ fn main() {
             let default_endpoints = config::get_default_endpoints();
             let current_endpoint = default_endpoints[0].clone();
             let state_sync = Arc::new(Mutex::new(TauriStateSync {
+                style: CLASSIC_STYLE,
                 remote_endpoints: default_endpoints,
                 current_endpoint,
                 locale: "en".into(),
@@ -923,7 +966,7 @@ fn main() {
                 let guard = state_sync.blocking_lock();
                 guard.effective_folder()
             };
-            let store_path = game_root.join("ButterClient/config.json");
+            let store_path = game_root.join("launcher_config/config.json");
 
             // if the user already had %APPDATA%/config.json, move it once
             if let Some(app_cfg) = tauri::api::path::app_config_dir(&Default::default()) {
@@ -959,7 +1002,7 @@ fn main() {
                         let guard = state.state_sync.blocking_lock();
                         guard.effective_folder()
                     };
-                    let new_store_path = game_root.join("ButterClient/config.json");
+                    let new_store_path = game_root.join("launcher_config/config.json");
 
                     // first-run migration
                     migrate_config_file(&old_store_path, &new_store_path);
@@ -992,7 +1035,11 @@ fn main() {
                                 .apply_config(&state_sync.remote_endpoints_config);
                             handle_style(&mut window, state_sync.style);
                         }
-                        Err(e) => info!("unable to load config from disk: {}", e),
+                        Err(e) => {
+                            info!("unable to load config from disk: {}", e);
+                            // ← AGGIUNGI QUESTO: Applica lo stile anche al primo avvio
+                            handle_style(&mut window, state_sync.style);
+                        }
                     }
                     state_sync.store = StoreHelper::new(store);
                     window.show().unwrap();
@@ -1022,6 +1069,7 @@ fn main() {
                     }
                     Ok(())
                 })
+
                 .invoke_handler(tauri::generate_handler![
                     initial_data,
                     set_style,
@@ -1041,7 +1089,9 @@ fn main() {
                     export_character,
                     patcher_start,
                     patcher_stop,
-					patcher::reset_game_files
+					patcher::reset_game_files,
+					check_first_run,
+                    complete_first_run_setup
                 ])
                 .build(tauri::generate_context!())
                 .expect("error while building tauri application");

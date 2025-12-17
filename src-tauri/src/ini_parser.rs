@@ -22,7 +22,7 @@ pub struct IniFile {
 impl IniFile {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, String> {
         let content = fs::read_to_string(path)
-        .map_err(|e| format!("Impossibile leggere il file INI: {}", e))?;
+            .map_err(|e| format!("Impossibile leggere il file INI: {}", e))?;
 
         Self::parse(&content)
     }
@@ -83,8 +83,8 @@ impl IniFile {
 
     pub fn get(&self, section: &str, key: &str) -> Option<String> {
         self.data.get(section)?.iter()
-        .find(|(k, _)| k == key)
-        .map(|(_, v)| v.clone())
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.clone())
     }
 
     pub fn set(&mut self, section: &str, key: &str, value: &str) {
@@ -120,7 +120,7 @@ impl IniFile {
         }
 
         fs::write(path, output)
-        .map_err(|e| format!("Impossibile salvare il file INI: {}", e))
+            .map_err(|e| format!("Impossibile salvare il file INI: {}", e))
     }
 
     /// Debug helper

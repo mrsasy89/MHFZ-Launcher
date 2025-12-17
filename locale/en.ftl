@@ -119,7 +119,6 @@ password-error = Your password is incorrect
 username-exists-error = Username already exists
 username-password-empty-error = Username and password must not be empty
 
-
 reset-patch-label = Maintenance
 reset-button-label = Reset patched files
 resetting-label = Resetting…
