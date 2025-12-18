@@ -85,3 +85,6 @@ launcher_output.txt
 
 # Game Data
 game/
+
+#backup old file
+.backup-old-scripts

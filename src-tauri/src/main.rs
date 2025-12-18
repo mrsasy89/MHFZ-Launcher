@@ -941,6 +941,23 @@ impl From<&server::FriendData> for mhf_iel::FriendData {
 }
 
 fn main() {
+
+    // 🔧 CRITICAL: Set font environment variables BEFORE Tauri initializes WebKitGTK!
+    #[cfg(target_os = "linux")]
+    {
+        use std::env;
+        // FORCE font configuration (no conditionals!)
+        env::set_var("FONTCONFIG_PATH", "/etc/fonts");
+        env::set_var("FONTCONFIG_FILE", "/etc/fonts/fonts.conf");
+
+        // Preserve or set XDG_DATA_DIRS
+        if env::var("XDG_DATA_DIRS").is_err() {
+            env::set_var("XDG_DATA_DIRS", "/usr/share:/usr/local/share");
+        }
+
+        log::info!("✅ Font environment variables initialized");
+    }
+
     // Log plugin has an issue where it cannot be initialized twice.
     let mut log_plugin_initial = Some(
         tauri_plugin_log::Builder::default()
