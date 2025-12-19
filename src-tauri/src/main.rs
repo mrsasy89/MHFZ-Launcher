@@ -939,31 +939,46 @@ impl From<&server::FriendData> for mhf_iel::FriendData {
         }
     }
 }
-
 fn main() {
-
-    // 🔧 CRITICAL: Set font environment variables BEFORE Tauri initializes WebKitGTK!
+    // ✅ CRITICAL FIX: Forza variabili fontconfig PRIMA di inizializzare Tauri
     #[cfg(target_os = "linux")]
     {
         use std::env;
-        // FORCE font configuration (no conditionals!)
-        env::set_var("FONTCONFIG_PATH", "/etc/fonts");
-        env::set_var("FONTCONFIG_FILE", "/etc/fonts/fonts.conf");
 
-        // Preserve or set XDG_DATA_DIRS
+        // Forza FONTCONFIG se non sono già impostate
+        if env::var("FONTCONFIG_PATH").is_err() {
+            env::set_var("FONTCONFIG_PATH", "/etc/fonts");
+        }
+        if env::var("FONTCONFIG_FILE").is_err() {
+            env::set_var("FONTCONFIG_FILE", "/etc/fonts/fonts.conf");
+        }
         if env::var("XDG_DATA_DIRS").is_err() {
             env::set_var("XDG_DATA_DIRS", "/usr/share:/usr/local/share");
         }
 
-        log::info!("✅ Font environment variables initialized");
+        // Forza GTK theme per consistency
+        if env::var("GTK_THEME").is_err() {
+            env::set_var("GTK_THEME", "Adwaita");
+        }
+
+        // Clear font cache se corrotto
+        if let Ok(home) = env::var("HOME") {
+            let cache_path = format!("{}/.cache/fontconfig", home);
+            let _ = std::fs::remove_dir_all(&cache_path);
+        }
+
+        eprintln!("🔧 Fontconfig forced:");
+        eprintln!("  FONTCONFIG_PATH: {}", env::var("FONTCONFIG_PATH").unwrap_or_default());
+        eprintln!("  FONTCONFIG_FILE: {}", env::var("FONTCONFIG_FILE").unwrap_or_default());
     }
 
     // Log plugin has an issue where it cannot be initialized twice.
     let mut log_plugin_initial = Some(
         tauri_plugin_log::Builder::default()
-            .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
-            .build(),
+        .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+        .build(),
     );
+
     loop {
         let (config, run) = {
             let default_endpoints = config::get_default_endpoints();
