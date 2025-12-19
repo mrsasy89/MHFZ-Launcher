@@ -1234,17 +1234,20 @@ fn main() {
 
                 let cfg_linux = lib_linux::MhfConfigLinux { game_folder };
 
-                // ✅ Lancia il gioco e chiudi il launcher
+                // ✅ Lancia il gioco in background detachato dal launcher
                 match lib_linux::run_linux(cfg_linux) {
                     Ok(_) => {
                         info!("Game launched successfully");
-                        info!("Launcher closing...");
+                        info!("Launcher will close, game continues in background...");
+
+                        // ✅ CRITICAL: Aspetta 2 secondi per assicurarsi che il gioco parta
+                        std::thread::sleep(std::time::Duration::from_secs(2));
+
                         break; // Esce dal loop e chiude il launcher
                     }
                     Err(e) => {
                         error!("Failed to launch game: {}", e);
-                        // Mostra errore ma non chiudere, così l'utente vede il messaggio
-                        // (Opzionale: potresti aggiungere una finestra di errore)
+                        // Mostra errore ma non chiudere
                     }
                 }
             }

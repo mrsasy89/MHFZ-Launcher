@@ -218,7 +218,7 @@ function srvTypeSfx(e) {
           <img draggable="false" :key="launcherHeaderUrl" :src="launcherHeaderUrl" @error="e => (e.target.src = fallbackLauncherHeader)"/>
           <div class="absolute">
             <div class="relative bottom-[45px] left-[350px] text-[#dcdcdc]">
-              release ver. 1.4.6
+              release ver. 1.4.7
             </div>
           </div>
           <div
