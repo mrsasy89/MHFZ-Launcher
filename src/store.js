@@ -212,17 +212,23 @@ watch(
     await handleInvoke("set_locale", { locale });
   }
 );
+
 watch(
   () => storeMut.gameFolder,
-  async (gameFolder, oldGameFolder) => {
-    try {
-      await handleInvoke("set_game_folder", { gameFolder });
-    } catch (error) {
-      if (error === "") return;
-      storeMut.gameFolder = oldGameFolder;
-    }
-  }
+      async (gameFolder, oldGameFolder) => {
+        try {
+          // Se gameFolder è null, passa currentFolder/game al backend
+          const folderToSet = gameFolder === null
+          ? `${storePrivate.currentFolder}/game`
+          : gameFolder;
+          await handleInvoke("set_game_folder", { gameFolder: folderToSet });
+        } catch (error) {
+          if (error === "") return;
+          storeMut.gameFolder = oldGameFolder;
+        }
+      }
 );
+
 watch(
   () => storeMut.serverlistUrl,
   async (serverlistUrl) =>
@@ -299,7 +305,7 @@ export const effectiveMessages = computed(
 );
 
 export const effectiveFolder = computed(
-  () => storeMut.gameFolder || storePrivate.currentFolder
+  () => storeMut.gameFolder || `${storePrivate.currentFolder}/game`
 );
 
 export async function initStore() {
