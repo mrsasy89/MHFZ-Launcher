@@ -55,9 +55,11 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 ### 📅 Roadmap (Phase 4)
 
-- [ ] Flatpak packaging (Linux)
-- [ ] Steam OS optimization
 - [ ] Multi-distro testing (Ubuntu, Fedora, Debian)
+- [ ] Steam OS optimization
+- [ ] Community feedback integration
+- [ ] Flatpak packaging (Linux, **on-demand only**)  
+  _Planned only if the community explicitly requests it; AppImage remains the primary distribution format._
 
 **Progress**: `███████████████████░` 95%
 
@@ -499,7 +501,7 @@ Contributions are welcome! Areas needing help:
 
 ### Medium Priority
 3. **GTK exit crash**: Fix cosmetic error on game closure
-4. **Flatpak packaging**: Alternative to AppImage
+4. **Flatpak packaging**: Alternative to AppImage (only if requested by community)
 
 ### Development Workflow
 
@@ -661,7 +663,7 @@ Goals:
 - [ ] Fedora 39/40 testing
 - [ ] Debian 12 testing
 - [ ] Steam OS testing
-- [ ] Flatpak packaging
+- [ ] Flatpak packaging (Linux, **only if requested by community**)
 
 ---
 
