@@ -23,13 +23,16 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - 🔐 **Secure**: Token-based authentication
 - 📦 **Auto-patcher**: Server-side patch management
 - 🌐 **Avalanche Server**: Pre-configured for immediate play
-- ⚙️ **Full Settings Control**: Game configuration (graphics, audio, controls) **NEW!** ✨
+- ⚙️ **Full Settings Control**: Game configuration (graphics, audio, controls)
+- 🐧 **AppImage Support**: Portable Linux distribution **NEW!** ✨
+- 🎌 **Auto Japanese Fonts**: Automatic font installation on Linux **NEW!** ✨
+- 📁 **Smart Defaults**: Game folder defaults to `Current Folder/game` **NEW!** ✨
 
 ---
 
 ## 🛠️ Current Development Status
 
-### ✅ Completed (90% - Phase 1-3)
+### ✅ Completed (95% - Phase 1-3)
 
 - [x] Backend refactoring (removed Windows-only dependencies)
 - [x] Cross-platform INI parsing (conditional compilation)
@@ -44,18 +47,19 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - [x] **Game launch via Wine** ✅ WORKING!
 - [x] **mhf-iel integration** ✅ WORKING!
 - [x] **Friends list injection** ✅ WORKING! 🎉
-- [x] **Full INI parser** ✅ **COMPLETED!** 🎉 **NEW!**
-  - Cross-platform read/write (Windows & Linux)
-  - Game settings persistence (graphics, audio, controls)
-  - Automatic line-ending detection (CRLF/LF)
-  - `mhf.ini` auto-generation if missing
+- [x] **Full INI parser** ✅ COMPLETED! 🎉
+- [x] **Wine prefix auto-creation** ✅ **NEW!** 🎉
+- [x] **Japanese fonts auto-installation** ✅ **NEW!** 🎉
+- [x] **AppImage packaging** ✅ **NEW!** 🎉
+- [x] **Default game folder (Current Folder/game)** ✅ **NEW!** 🎉
 
 ### 📅 Roadmap (Phase 4)
 
-- [ ] AppImage/Flatpak packaging (Linux)
+- [ ] Flatpak packaging (Linux)
 - [ ] Steam OS optimization
+- [ ] Multi-distro testing (Ubuntu, Fedora, Debian)
 
-**Progress**: `██████████████████░░` 90%
+**Progress**: `███████████████████░` 95%
 
 ---
 
@@ -73,9 +77,12 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 | **Game execution** | ✅ **Working!** | Confirmed playable |
 | **mhf-iel integration** | ✅ Working | Direct DLL injection |
 | **config.json generation** | ✅ Working | 25+ fields |
-| **Friends list Fix** | ✅ Working | Fix mhf-iel integrate |
-| **Game Settings (mhf.ini)** | ✅ **Working!** | Full read/write ✨ **NEW!** |
-
+| **Friends list Fix** | ✅ Working | mhf-iel integrated |
+| **Game Settings (mhf.ini)** | ✅ Working | Full read/write |
+| **Wine Prefix Auto-Creation** | ✅ **Working!** | First launch setup ✨ **NEW!** |
+| **Japanese Fonts** | ✅ **Working!** | Auto-install from fonts/ ✨ **NEW!** |
+| **AppImage Distribution** | ✅ **Working!** | Portable package ✨ **NEW!** |
+| **Default Game Folder** | ✅ **Working!** | Auto-detects game/ subfolder ✨ **NEW!** |
 
 ### 🚧 Known Issues
 
@@ -83,7 +90,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 ### 📊 Test Results
 
-**Last test**: December 16, 2025  
+**Last test**: December 19, 2025  
 **Environment**: Arch Linux + Wine 10.20 + DXVK 2.7.1
 
 ```
@@ -95,53 +102,58 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ✅ Game started (bypassed CAPCOM launcher)
 ✅ In-game connection established
 ✅ Gameplay confirmed working
-✅ Game settings read/write working (mhf.ini) ← NEW!
+✅ Game settings read/write working (mhf.ini)
+✅ Wine prefix auto-created on first launch ← NEW!
+✅ Japanese fonts auto-installed ← NEW!
+✅ AppImage double-click launch working ← NEW!
+✅ Default game folder detection ← NEW!
 ✅ Clean exit (code 0)
 ```
 
 ---
 
-## ⚙️ Game Settings Configuration **NEW!** ✨
-
-### Implemented Settings
-
-The launcher now **reads and writes** game settings from `mhf.ini` on **both Windows and Linux**:
-
-#### 🖥️ Display
-- ✅ **HD Version** (Graphics quality: Classic vs HD)
-- ✅ **Fullscreen Mode** (Windowed vs Fullscreen)
-- ✅ **Window Resolution** (Custom width/height)
-- ✅ **Fullscreen Resolution** (Monitor resolution)
-
-### Cross-Platform INI Parser
-
-**New in v1.5.0**: Custom Rust INI parser (`ini_parser.rs`) that:
-
-- ✅ **Preserves file format**: Maintains original line endings (CRLF on Windows, LF on Linux)
-- ✅ **Non-destructive**: Only modifies changed settings
-- ✅ **Auto-creates**: Generates default `mhf.ini` if missing
-- ✅ **Error handling**: Detailed logging for debugging
-- ✅ **Same code**: Identical behavior on Windows and Linux
-
-**Technical details**:
-```
-/ Example: Update graphics setting
-ini.set("VIDEO", "GRAPHICS_VER", if hd_mode { "1" } else { "0" });
-ini.set("SCREEN", "FULLSCREEN_MODE", if fullscreen { "1" } else { "0" });
-ini.save("mhf.ini")?; // Preserves original line endings
-
-```
-**Total configurable options**: 36 settings available in `mhf.ini`  
-**Currently exposed in UI**: 6 (graphics/display)  
-**Planned for next release**: 30 additional options
-
----
-
 ## 🚀 Quick Start
 
-### For Players (Linux - Beta)
+### For Players (Linux - AppImage) **NEW!** ✨
 
 **Pre-configured for Avalanche MHFZ server!**
+
+#### Option 1: AppImage (Recommended - No Installation Required)
+
+1. **Download AppImage** from [Releases](https://github.com/mrsasy89/MHFZ-Launcher/releases)
+   ```bash
+   chmod +x MHFZ-Launcher-x86_64.AppImage
+   ```
+
+2. **Prepare game files structure**
+   ```
+   ~/Games/MHFZ/
+   ├── MHFZ-Launcher-x86_64.AppImage  # The launcher
+   ├── game/                          # Game files folder (NEW!)
+   │   ├── mhf-iel-cli.exe           # IELess launcher
+   │   ├── mhfo-hd.dll               # HD client
+   │   ├── mhf.ini                   # Config (auto-generated)
+   │   └── dat/                      # Game data
+   └── fonts/                         # Japanese fonts (NEW!)
+       ├── msgothic.ttc
+       ├── msmincho.ttc
+       └── ...
+   ```
+
+3. **Double-click AppImage and play!**
+   - First launch takes 1-2 minutes (Wine prefix creation)
+   - Japanese fonts are auto-installed
+   - Subsequent launches are instant
+   - No terminal needed! 🎉
+
+**What happens on first launch:**
+- ✅ Wine prefix created automatically at `game/pfx`
+- ✅ Japanese fonts copied from `fonts/` to Wine prefix
+- ✅ XAUTHORITY configured for display server
+- ✅ FONTCONFIG variables set for correct rendering
+- ✅ All done transparently, no user action needed!
+
+#### Option 2: Manual Wine Setup
 
 1. **Install Wine** (10.x or newer)
    ```bash
@@ -152,36 +164,41 @@ ini.save("mhf.ini")?; // Preserves original line endings
    sudo apt install wine64 winetricks
    ```
 
-2. **Setup Wine prefix**
-   ```bash
-   mkdir -p ~/Games/MHFZ/pfx
-   export WINEPREFIX=~/Games/MHFZ/pfx
-   WINEARCH=win32 wineboot --init
-   ```
+2. **Download game files** and launcher
+   - Create folder structure as shown above
+   - Ensure `fonts/` folder contains Japanese fonts
 
-3. **Install DXVK** (optional, improves performance)
+3. **Run launcher**
    ```bash
-   WINEPREFIX=~/Games/MHFZ/pfx setup_dxvk install
-   ```
-
-4. **Download game files** (Monster Hunter Frontier Z)
-   - Place in `~/Games/MHFZ/`
-   - Download **mhf-iel-cli.exe** from [mhf-iel releases](https://github.com/rockisch/mhf-iel)
-   - Place `mhf-iel-cli.exe` in game folder
-   - Ensure `mhfo-hd.dll` (or `mhfo.dll`) and `dat/` folder are present
-
-5. **Download launcher** from [Releases](https://github.com/mrsasy89/MHFZ-Launcher/releases)
-   ```bash
-   chmod +x MHFZ-Launcher
-   export WINEPREFIX=~/Games/MHFZ/pfx
+   ./MHFZ-Launcher-x86_64.AppImage
+   # Or if using binary:
    ./MHFZ-Launcher
    ```
 
-6. **Login and play!**
+4. **Login and play!**
    - Enter Avalanche credentials
    - Select character
    - Click **START GAME**
-   - Game launches via Wine automatically 🎉
+   - Game launches automatically 🎉
+
+### Game Folder Configuration **NEW!**
+
+The launcher now defaults to `Current Folder/game` for the game path. This means:
+
+- **Before**: You had to manually configure the game folder
+- **After**: Just place game files in a `game/` subfolder next to the launcher
+
+**Example structure:**
+```
+/home/user/MHFZ/
+├── MHFZ-Launcher           # Launcher executable
+└── game/                   # Default game folder (auto-detected)
+    ├── mhf-iel-cli.exe
+    ├── mhfo-hd.dll
+    └── dat/
+```
+
+You can still override this in **Settings → Advanced → Game Folder** if needed.
 
 ### For Developers (Build from Source)
 
@@ -224,7 +241,130 @@ To add your own server, edit `ButterClient/config.json`:
 }
 ```
 
-Or use the in-launcher Settings panel (coming soon).
+Or use the in-launcher Settings panel.
+
+---
+
+## ⚙️ Game Settings Configuration
+
+### Implemented Settings
+
+The launcher now **reads and writes** game settings from `mhf.ini` on **both Windows and Linux**:
+
+#### 🖥️ Display
+- ✅ **HD Version** (Graphics quality: Classic vs HD)
+- ✅ **Fullscreen Mode** (Windowed vs Fullscreen)
+- ✅ **Window Resolution** (Custom width/height)
+- ✅ **Fullscreen Resolution** (Monitor resolution)
+
+### Cross-Platform INI Parser
+
+Custom Rust INI parser (`ini_parser.rs`) that:
+
+- ✅ **Preserves file format**: Maintains original line endings (CRLF on Windows, LF on Linux)
+- ✅ **Non-destructive**: Only modifies changed settings
+- ✅ **Auto-creates**: Generates default `mhf.ini` if missing
+- ✅ **Error handling**: Detailed logging for debugging
+- ✅ **Same code**: Identical behavior on Windows and Linux
+
+**Total configurable options**: 36 settings available in `mhf.ini`  
+**Currently exposed in UI**: 6 (graphics/display)  
+**Planned for next release**: 30 additional options
+
+---
+
+## 🐧 Linux Implementation Details **UPDATED!** ✨
+
+### Wine Prefix Auto-Creation **NEW!**
+
+The launcher now automatically creates and configures the Wine prefix on first launch:
+
+**What it does:**
+1. Checks if `game/pfx` exists
+2. If not, runs `wineboot --init` automatically
+3. Takes 1-2 minutes on first launch
+4. Subsequent launches are instant
+
+**Benefits:**
+- ✅ No manual `wineboot` commands needed
+- ✅ No large (~500MB) prefix in distribution
+- ✅ Smaller download size (~100MB vs ~600MB)
+- ✅ Better portability across Linux systems
+
+### Japanese Fonts Auto-Installation **NEW!**
+
+Fonts are now installed automatically from the `fonts/` folder:
+
+**Setup:**
+```
+~/Games/MHFZ/
+└── fonts/                    # Place fonts here
+    ├── msgothic.ttc         # Required for UI
+    ├── msmincho.ttc         # Required for text
+    ├── meiryo.ttc           # Optional
+    └── meiryob.ttc          # Optional
+```
+
+**Installation process:**
+1. Launcher checks if fonts are installed in Wine prefix
+2. If not, copies from `fonts/` to `pfx/drive_c/windows/Fonts/`
+3. Happens automatically on first launch
+4. One-time operation (~50MB)
+
+**Font sources:**
+- Extract from Windows 10/11: `C:\Windows\Fonts\`
+- Download from Japanese font packs
+- Minimum required: `msgothic.ttc`, `msmincho.ttc`
+
+### AppImage Wrapper Script **NEW!**
+
+The AppImage includes a wrapper script that:
+
+**Environment setup:**
+```bash
+export XAUTHORITY="$HOME/.Xauthority"        # X11 auth
+export FONTCONFIG_PATH="/etc/fonts"          # System fonts
+export FONTCONFIG_FILE="/etc/fonts/fonts.conf"
+export WINEPREFIX="$APPDIR/game/pfx"        # Wine prefix
+```
+
+**Benefits:**
+- ✅ No terminal window popup
+- ✅ Desktop double-click works
+- ✅ Proper X11 authentication
+- ✅ System fonts integration
+
+### Wine Prefix Configuration
+
+**Default location:** `game/pfx` (relative to launcher)
+
+**Structure after setup:**
+```
+game/pfx/
+├── drive_c/
+│   └── windows/
+│       └── Fonts/              # Auto-installed fonts
+│           ├── msgothic.ttc
+│           └── msmincho.ttc
+├── dosdevices/
+└── system.reg
+```
+
+**Environment variables:**
+```bash
+WINEPREFIX="$HOME/Games/MHFZ/game/pfx"   # Prefix location
+WINEARCH=win32                            # 32-bit (MHFZ requirement)
+XAUTHORITY="$HOME/.Xauthority"            # X11 display auth
+```
+
+### Tested Wine Versions
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| Wine 10.20 | ✅ **Working** | Primary test environment |
+| Wine 9.0 | ✅ Working | Stable |
+| Wine 8.x | 🧪 Untested | Should work |
+| Wine-Staging | ✅ Recommended | More gaming patches |
 
 ---
 
@@ -263,86 +403,19 @@ rustup override set nightly
 # 3. Install dependencies
 npm install
 
-# 4. Development mode (Linux)
-export WINEPREFIX="$HOME/Games/MHFZ/pfx"
-export RUST_LOG=info  # Enable debug logs
+# 4. Development mode
 npm run tauri:dev
 
 # 5. Production build
 npm run tauri:build
+
+# 6. Build AppImage (Linux only)
+./build-steamos.sh
 ```
 
-**Output location**: `src-tauri/target/release/`
-
----
-
-## 🐧 Linux Setup (Wine)
-
-### Why Wine (Not Proton)?
-
-**MHFZ-Launcher uses Wine**, not Proton, for the following reasons:
-
-- ✅ **Lighter weight**: No Steam overhead
-- ✅ **DirectX 9 compatibility**: Wine handles D3D9 natively
-- ✅ **Proven compatibility**: mhf-iel tested with Wine
-- ✅ **Standalone**: No Steam dependency
-- ✅ **Confirmed working**: Game tested successfully with Wine 10.20
-
-Proton is Valve's fork of Wine optimized for Steam games, but MHFZ doesn't need its extra layers.
-
-### Wine Prefix Configuration
-
-```bash
-# 1. Create isolated prefix
-mkdir -p ~/Games/MHFZ/pfx
-export WINEPREFIX=~/Games/MHFZ/pfx
-
-# 2. Initialize 32-bit prefix (MHFZ is 32-bit)
-WINEARCH=win32 wineboot --init
-
-# 3. Install dependencies (optional)
-winetricks dotnet48 vcrun2019 d3dx9 d3dcompiler_47
-winetricks corefonts allfonts  # Fixes text rendering
-
-# 4. Install DXVK (optional, recommended for performance)
-setup_dxvk install
-
-# 5. Verify setup
-winecfg  # Should open without errors
-```
-
-### Game Files Location
-
-Place MHFZ game files in your chosen directory:
-
-```
-~/Games/MHFZ/
-├── mhf-iel-cli.exe  # IELess launcher (REQUIRED) ← Download from mhf-iel releases
-├── mhfo.dll         # SD client (ZZ) or
-├── mhfo-hd.dll      # HD client (ZZ) ← Recommended
-├── mhf.ini          # Game configuration (auto-generated)
-├── config.json      # mhf-iel config (auto-generated by launcher)
-├── dat/             # Game data
-├── pfx/             # Wine prefix (created by setup)
-└── ...
-
-```
-
-Set the game folder in launcher settings or via environment:
-
-```bash
-export MHF_GAME_FOLDER="$HOME/Games/MHFZ"
-export WINEPREFIX="$HOME/Games/MHFZ/pfx"
-```
-
-### Tested Wine Versions
-
-| Version | Status | Notes |
-|---------|--------|-------|
-| Wine 10.20 | ✅ **Working** | Primary test environment |
-| Wine 9.0 | ✅ Working | Stable |
-| Wine 8.x | 🧪 Untested | Should work |
-| Wine-Staging | ✅ Recommended | More gaming patches |
+**Output locations:**
+- Binary: `src-tauri/target/release/MHFZ-Launcher`
+- AppImage: `AppImage/MHFZ-Launcher-x86_64.AppImage`
 
 ---
 
@@ -364,7 +437,7 @@ Stored in game folder, controls:
 - Sound volume
 - Input settings
 
-**Note**: On Linux, `mhf.ini` uses default values if file is missing (Wine handles actual game settings).
+**Auto-generated** if missing with sensible defaults.
 
 ---
 
@@ -375,155 +448,33 @@ Stored in game folder, controls:
 ```
 src-tauri/
 ├── src/
-│ ├── main.rs # Tauri entry point + state management
-│ ├── config.rs # ✅ Server endpoints (Avalanche pre-configured)
-│ ├── settings.rs # ✅ Cross-platform settings manager (UPDATED!)
-│ ├── ini_parser.rs # ✅ NEW: Custom INI parser (cross-platform)
-│ ├── endpoint.rs # Server connection logic
-│ ├── patcher.rs # Update system
-│ ├── server.rs # HTTP client for auth/API
-│ └── lib_linux.rs # ✅ Wine launcher (WORKING!)
-├── mhf-iel-master/ # Game launcher module
-│ └── src/
-│ ├── lib.rs # Platform-specific entry
-│ ├── mhf.rs # Windows native launcher
+│   ├── main.rs              # Tauri entry point
+│   ├── config.rs            # Server config (Avalanche)
+│   ├── settings.rs          # Cross-platform settings
+│   ├── ini_parser.rs        # Custom INI parser
+│   ├── endpoint.rs          # Server connection
+│   ├── patcher.rs           # Update system
+│   ├── server.rs            # HTTP client
+│   └── lib_linux.rs         # Wine launcher (UPDATED!)
+│       ├── create_wine_prefix()      # NEW: Auto prefix creation
+│       ├── install_japanese_fonts()  # NEW: Auto font install
+│       └── run_linux()              # Main launcher logic
 └── Cargo.toml
-
-
-```
-
-### INI Parser Architecture **NEW!**
-
-**File**: `src-tauri/src/ini_parser.rs`
-
-**Key features**:
-
-```
-pub struct IniFile {
-sections: Vec<String>, // Preserves order
-data: HashMap<String, Vec<(String, String)>>, // Section -> [(key, value)]
-line_ending: String, // "\r\n" or "\n"
-}
-
-impl IniFile {
-// Cross-platform file I/O
-pub fn from_file(path: &Path) -> Result<Self, String>;
-pub fn save(&self, path: &Path) -> Result<(), String>;
-
-// Settings manipulation
-pub fn get(&self, section: &str, key: &str) -> Option<String>;
-pub fn set(&mut self, section: &str, key: &str, value: &str);
-}
-
-// High-level helper
-pub fn apply_game_settings(
-ini_path: &Path,
-hd_version: bool,
-fullscreen: bool,
-window_w: u32,
-window_h: u32,
-fullscreen_w: u32,
-fullscreen_h: u32,
-) -> Result<(), String>;
-
-```
-
-**Why custom parser?**
-- ❌ **serde_ini**: Doesn't preserve order or formatting
-- ❌ **ini crate**: Destroys comments and structure
-- ✅ **Custom**: Full control over file preservation
-
-**Line ending detection**:
-
-```
-let line_ending = if content.contains("\r\n") {
-"\r\n".to_string() // Windows
-} else {
-"\n".to_string() // Linux/macOS
-};
-
 ```
 
 ### Frontend (Vue.js)
+
 ```
 src/
 ├── settings/
-│ ├── SettingsList.vue # ✅ Settings UI (UPDATED!)
-│ ├── SettingsCheckbox.vue # Checkbox component
-│ ├── SettingsItem.vue # Setting row wrapper
-│ └── SettingsButton.vue # Action buttons
-├── Classic.vue # Classic UI (default, CAPCOM style)
-├── Modern.vue # Modern UI (alternative)
-└── store.js # ✅ Vuex state (settings added)
-
-```
-
-**Settings flow**:
-
-```
-User changes setting in UI
-↓
-Vue component calls setSetting()
-↓
-Tauri command "set_setting" invoked
-↓
-Rust backend: settings::set_setting()
-↓
-INI parser writes to mhf.ini
-↓
-Setting persisted to disk ✅
-
-```
-
----
-
-### lib_linux.rs Implementation
-
-**Wine process spawning logic** (simplified):
-
-```rust
-pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
-    // 1. Get mhf-iel config from global storage
-    let iel_config = MHF_IEL_CONFIG_GLOBAL.get();
-    
-    if let Some(cfg) = iel_config {
-        // 2. Generate config.json for mhf-iel
-        generate_mhf_iel_config(&config.game_folder, cfg)?;
-        
-        // 3. Find mhf-iel-cli.exe
-        let iel_path = config.game_folder.join("mhf-iel-cli.exe");
-        
-        // 4. Setup Wine environment
-        let wine_prefix = config.game_folder.join("pfx");
-        
-        // 5. Launch game via Wine + mhf-iel
-        let mut command = Command::new("wine");
-        command
-            .arg(&iel_path)
-            .current_dir(&config.game_folder)
-            .env("WINEPREFIX", &wine_prefix)
-            .env("DXVK_HUD", "fps");
-        
-        command.spawn()?.wait()?;
-        Ok(())
-    } else {
-        // Fallback: Proton (only if mhf-iel unavailable)
-        run_proton_fallback(config)
-    }
-}
-
-```
-
-**Next step**: Replace `mhf.exe` with `mhf-iel.exe` for direct DLL injection (bypasses CAPCOM launcher).
-
-### Frontend (Vue.js)
-
-```
-src/
-├── Classic.vue              # Classic UI (default, CAPCOM style)
-├── Modern.vue               # Modern UI (alternative)
-├── Settings.vue             # Configuration panel
-└── store.js                 # Vuex state management
+│   ├── SettingsList.vue     # Settings UI
+│   ├── SettingsCheckbox.vue
+│   ├── SettingsItem.vue
+│   └── SettingsButton.vue
+├── Classic.vue              # Classic UI (CAPCOM style)
+├── Modern.vue               # Modern UI
+└── store.js                 # Vuex state (UPDATED!)
+    └── effectiveFolder      # NEW: Defaults to Current Folder/game
 ```
 
 ### Key Technologies
@@ -534,6 +485,7 @@ src/
 - **Tokio**: Async runtime
 - **Wine**: Windows compatibility layer (Linux)
 - **DXVK**: DirectX to Vulkan translation (optional)
+- **AppImage**: Portable Linux application format **NEW!**
 
 ---
 
@@ -546,8 +498,8 @@ Contributions are welcome! Areas needing help:
 2. **SteamOS**: Optimization and testing
 
 ### Medium Priority
-
 3. **GTK exit crash**: Fix cosmetic error on game closure
+4. **Flatpak packaging**: Alternative to AppImage
 
 ### Development Workflow
 
@@ -556,34 +508,19 @@ Contributions are welcome! Areas needing help:
 git clone https://github.com/YOUR_USERNAME/MHFZ-Launcher.git
 cd MHFZ-Launcher
 
-# 2. Read documentation
-cat docs/README.md
-cat docs/IMPLEMENTATION_PLAN.md
+# 2. Create feature branch
+git checkout -b feature/my-feature
 
-# 3. Create feature branch
-git checkout -b feature/mhf-iel-integration
-
-# 4. Make changes and test
-export WINEPREFIX=~/Games/MHFZ/pfx
-export RUST_LOG=info
+# 3. Make changes and test
 npm run tauri:dev
 
-# 5. Follow testing checklist
-cat docs/TESTING_CHECKLIST.md
+# 4. Commit with conventional commits
+git commit -m "feat(linux): add feature X"
 
-# 6. Commit with conventional commits
-git commit -m "feat(linux): integrate mhf-iel for direct DLL injection
-
-- Cross-compile mhf-iel.exe for Windows i686
-- Update lib_linux.rs to use mhf-iel instead of mhf.exe
-- Pass user token and server config via CLI args
-- Bypass CAPCOM launcher entirely
-
-Tested on: Arch Linux with Wine 10.20 + DXVK 2.7.1"
-
-# 7. Push and create PR
-git push origin feature/mhf-iel-integration
+# 5. Push and create PR
+git push origin feature/my-feature
 ```
+
 ---
 
 ## 🧪 Testing
@@ -606,13 +543,16 @@ git push origin feature/mhf-iel-integration
 - ✅ Login to Avalanche server
 - ✅ Character list loading
 - ✅ Settings persistence
-- ✅ **Game launch (Linux via Wine)** 🎉
-- ✅ **In-game connection** 🎉
-- ✅ **Gameplay** 🎉
-- ✅ **config.json generation** (mhf-iel)
-- ✅ **mhf-iel-cli.exe launch** 🎉
-- ✅ **Game launch (Linux via Wine + mhf-iel)** 🎉
-- ✅ **Friends list (implemented)**🎉
+- ✅ Game launch (Linux via Wine)
+- ✅ In-game connection
+- ✅ Gameplay
+- ✅ config.json generation (mhf-iel)
+- ✅ mhf-iel-cli.exe launch
+- ✅ Friends list
+- ✅ Wine prefix auto-creation **NEW!**
+- ✅ Japanese fonts auto-install **NEW!**
+- ✅ AppImage packaging **NEW!**
+- ✅ Default game folder detection **NEW!**
 
 ---
 
@@ -636,8 +576,8 @@ This project is a fork of [ButterClient](https://github.com/LilButter/ButterClie
 ## 🙏 Credits
 
 - **Original ButterClient**: [LilButter](https://github.com/LilButter)
-- **Linux Port & mhf-iel Integration**: [mrsasy89](https://github.com/mrsasy89)
-- **mhf-iel**: [rockisch](https://github.com/rockisch) - IELess launcher (now integrated!)
+- **Linux Port & Enhancements**: [mrsasy89](https://github.com/mrsasy89)
+- **mhf-iel**: [rockisch](https://github.com/rockisch) - IELess launcher
 - **Avalanche Server**: Community-maintained Erupe instance
 - **Erupe Server**: Community-developed private server
 - **CAPCOM**: Original game assets and Monster Hunter Frontier Z
@@ -656,26 +596,31 @@ This project is a fork of [ButterClient](https://github.com/LilButter/ButterClie
 A: No. Official servers were shut down in 2019. This launcher works with private servers only.
 
 **Q: Do I need a Windows PC to play on Linux?**  
-A: No! Wine runs the game natively on Linux. Performance is excellent (tested working).
+A: No! Wine runs the game natively on Linux. Performance is excellent.
+
+**Q: Do I need to manually setup Wine?**  
+A: **Not anymore!** The AppImage auto-creates the Wine prefix on first launch. Just double-click and play.
+
+**Q: What about Japanese fonts?**  
+A: **Auto-installed!** Just place fonts in a `fonts/` folder next to the launcher. They're installed automatically on first launch.
 
 **Q: Where do I get the game files?**  
-A: You need a copy of Monster Hunter Frontier Z (Japanese version). Check community resources or archived game files.
+A: You need a copy of Monster Hunter Frontier Z (Japanese version). Check community resources.
 
 **Q: Is this launcher safe?**  
-A: Yes. Open source (GPL v3), no telemetry, no ads. You can review the code yourself.
+A: Yes. Open source (GPL v3), no telemetry, no ads. Review the code yourself.
 
 **Q: Can I use this on Steam Deck?**  
-A: Not yet tested, but it should work with the included Wine setup. Testing welcome!
+A: Not yet tested, but AppImage should work. Testing welcome!
 
 **Q: Why Wine and not Proton?**  
-A: Wine is lighter, works standalone without Steam, and MHFZ (DirectX 9) doesn't need Proton's extra features. Wine 10.20 tested working perfectly.
+A: Wine is lighter, standalone, and MHFZ (DirectX 9) runs perfectly. Wine 10.20 tested working.
 
 **Q: Does it work with other Erupe servers?**  
-A: Yes! You can configure custom servers in the settings. Avalanche is just the default.
+A: Yes! Configure custom servers in Settings. Avalanche is just the default.
 
-**Q: Do I need mhf.exe?**  
-A: No! mhf-iel bypasses the CAPCOM launcher entirely. You only need `mhf-iel-cli.exe` and the game DLL (`mhfo-hd.dll`).
-
+**Q: Where does the game folder need to be?**  
+A: By default, just create a `game/` subfolder next to the launcher. Or configure a custom path in Settings → Advanced.
 
 ---
 
@@ -689,33 +634,39 @@ This project is for **educational purposes** and **preservation** of a discontin
 
 ## 🎯 Project Status
 
-**Current Version**: 1.4.6 (Cross-Platform Settings)  
-**Last Updated**: December 16, 2025  
+**Current Version**: 1.4.7 (Linux AppImage + Auto-Setup)  
+**Last Updated**: December 19, 2025  
 **Maintainer**: [@mrsasy89](https://github.com/mrsasy89)
 
 ### Recent Milestones 🎉
 
-- ✅ **December 16, 2025**: Full INI parser implementation (cross-platform) ✨
+- ✅ **December 19, 2025**: Default game folder to Current Folder/game ✨
+- ✅ **December 19, 2025**: Japanese fonts auto-installation ✨
+- ✅ **December 19, 2025**: Wine prefix auto-creation ✨
+- ✅ **December 19, 2025**: AppImage packaging ✨
+- ✅ **December 16, 2025**: Full INI parser implementation (cross-platform)
 - ✅ **December 15, 2025**: Friends list fixing
 - ✅ **December 14, 2025**: mhf-iel integration
 - ✅ **December 11, 2025**: Wine launcher successfully tested on Arch Linux
 - ✅ **December 11, 2025**: Game confirmed playable via Wine 10.20
-- ✅ **December 11, 2025**: DXVK integration verified working
 
 ### Next Milestone
 
-**v1.4.7 - Multi-distro testing (Ubuntu, Fedora, Debian, SteamOS)**
+**v1.5.0 - Multi-distro Support**
   
-**ETA**: ~1-2 week
+**ETA**: ~1-2 weeks
 
 Goals:
-
-- [ ] Multi-distro testing (Ubuntu, Fedora, Debian, SteamOS)
-- [ ] AppImage packaging
+- [ ] Ubuntu 22.04/24.04 testing
+- [ ] Fedora 39/40 testing
+- [ ] Debian 12 testing
+- [ ] Steam OS testing
+- [ ] Flatpak packaging
 
 ---
 
 ⭐ **Star this project** if you find it useful!  
 🐛 **Report bugs** via [Issues](https://github.com/mrsasy89/MHFZ-Launcher/issues)  
+📦 **Download AppImage** from [Releases](https://github.com/mrsasy89/MHFZ-Launcher/releases)
 
 **Happy Hunting! 🎮🔥**
