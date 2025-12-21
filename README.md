@@ -26,7 +26,6 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - ⚙️ **Full Settings Control**: Game configuration (graphics, audio, controls)
 - 🐧 **AppImage Support**: Portable Linux distribution **NEW!** ✨
 - 🎌 **Auto Japanese Fonts**: Automatic font installation on Linux **NEW!** ✨
-- 📁 **Smart Defaults**: Game folder defaults to `Current Folder/game` **NEW!** ✨
 
 ---
 
@@ -51,7 +50,6 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - [x] **Wine prefix auto-creation** ✅ **NEW!** 🎉
 - [x] **Japanese fonts auto-installation** ✅ **NEW!** 🎉
 - [x] **AppImage packaging** ✅ **NEW!** 🎉
-- [x] **Default game folder (Current Folder/game)** ✅ **NEW!** 🎉
 
 ### 📅 Roadmap (Phase 4)
 
@@ -84,7 +82,6 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 | **Wine Prefix Auto-Creation** | ✅ **Working!** | First launch setup ✨ **NEW!** |
 | **Japanese Fonts** | ✅ **Working!** | Auto-install from fonts/ ✨ **NEW!** |
 | **AppImage Distribution** | ✅ **Working!** | Portable package ✨ **NEW!** |
-| **Default Game Folder** | ✅ **Working!** | Auto-detects game/ subfolder ✨ **NEW!** |
 
 ### 🚧 Known Issues
 
@@ -92,7 +89,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 ### 📊 Test Results
 
-**Last test**: December 19, 2025  
+**Last test**: December 21, 2025  
 **Environment**: Arch Linux + Wine 10.20 + DXVK 2.7.1
 
 ```
@@ -108,7 +105,6 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 ✅ Wine prefix auto-created on first launch ← NEW!
 ✅ Japanese fonts auto-installed ← NEW!
 ✅ AppImage double-click launch working ← NEW!
-✅ Default game folder detection ← NEW!
 ✅ Clean exit (code 0)
 ```
 
@@ -131,7 +127,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
    ```
    ~/Games/MHFZ/
    ├── MHFZ-Launcher-x86_64.AppImage  # The launcher
-   ├── game/                          # Game files folder (NEW!)
+   ├── game/                          # Game files folder
    │   ├── mhf-iel-cli.exe           # IELess launcher
    │   ├── mhfo-hd.dll               # HD client
    │   ├── mhf.ini                   # Config (auto-generated)
@@ -183,24 +179,19 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
    - Click **START GAME**
    - Game launches automatically 🎉
 
-### Game Folder Configuration **NEW!**
+### Game Folder Configuration
 
-The launcher now defaults to `Current Folder/game` for the game path. This means:
-
-- **Before**: You had to manually configure the game folder
-- **After**: Just place game files in a `game/` subfolder next to the launcher
+Configure the game folder path in **Settings → Advanced → Game Folder**.
 
 **Example structure:**
 ```
 /home/user/MHFZ/
 ├── MHFZ-Launcher           # Launcher executable
-└── game/                   # Default game folder (auto-detected)
+└── game/                   # Game files folder
     ├── mhf-iel-cli.exe
     ├── mhfo-hd.dll
     └── dat/
 ```
-
-You can still override this in **Settings → Advanced → Game Folder** if needed.
 
 ### For Developers (Build from Source)
 
@@ -475,8 +466,7 @@ src/
 │   └── SettingsButton.vue
 ├── Classic.vue              # Classic UI (CAPCOM style)
 ├── Modern.vue               # Modern UI
-└── store.js                 # Vuex state (UPDATED!)
-    └── effectiveFolder      # NEW: Defaults to Current Folder/game
+└── store.js                 # Vuex state
 ```
 
 ### Key Technologies
@@ -554,7 +544,6 @@ git push origin feature/my-feature
 - ✅ Wine prefix auto-creation **NEW!**
 - ✅ Japanese fonts auto-install **NEW!**
 - ✅ AppImage packaging **NEW!**
-- ✅ Default game folder detection **NEW!**
 
 ---
 
@@ -621,8 +610,8 @@ A: Wine is lighter, standalone, and MHFZ (DirectX 9) runs perfectly. Wine 10.20 
 **Q: Does it work with other Erupe servers?**  
 A: Yes! Configure custom servers in Settings. Avalanche is just the default.
 
-**Q: Where does the game folder need to be?**  
-A: By default, just create a `game/` subfolder next to the launcher. Or configure a custom path in Settings → Advanced.
+**Q: Where do I configure the game folder?**  
+A: Go to Settings → Advanced → Game Folder and select your game installation directory.
 
 ---
 
@@ -637,12 +626,12 @@ This project is for **educational purposes** and **preservation** of a discontin
 ## 🎯 Project Status
 
 **Current Version**: 1.4.7 (Linux AppImage + Auto-Setup)  
-**Last Updated**: December 19, 2025  
+**Last Updated**: December 21, 2025  
 **Maintainer**: [@mrsasy89](https://github.com/mrsasy89)
 
 ### Recent Milestones 🎉
 
-- ✅ **December 19, 2025**: Default game folder to Current Folder/game ✨
+- ✅ **December 21, 2025**: Reverted currentFolder/game feature (caused infinite loop)
 - ✅ **December 19, 2025**: Japanese fonts auto-installation ✨
 - ✅ **December 19, 2025**: Wine prefix auto-creation ✨
 - ✅ **December 19, 2025**: AppImage packaging ✨
