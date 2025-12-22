@@ -23,7 +23,7 @@ use std::{
     fs::File,
     path::{self, Path, PathBuf},
     sync::Arc,
-	time::SystemTime,
+    time::SystemTime,
 };
 
 use log::{error, info, warn};
@@ -63,7 +63,7 @@ struct TauriStateSync {
     remote_endpoints: Vec<Endpoint>,
     remote_endpoints_config: HashMap<String, EndpointConfig>,
     current_endpoint: Endpoint,
-	launcher_ts: Option<SystemTime>,
+    launcher_ts: Option<SystemTime>,
     remote_messages: Vec<MessageData>,
     user_manager: UserManager,
     game_folder: Option<PathBuf>,
@@ -86,8 +86,8 @@ struct TauriStateSync {
 impl TauriStateSync {
     fn first_endpoint(&self) -> Option<&Endpoint> {
         self.remote_endpoints
-            .first()
-            .or_else(|| self.endpoints.first())
+        .first()
+        .or_else(|| self.endpoints.first())
     }
 
     fn contains_endpoint(&self, endpoint: &Endpoint) -> bool {
@@ -106,11 +106,11 @@ impl TauriStateSync {
         };
 
         self.current_endpoint = endpoints
-            .iter()
-            .find(|&e| e == &self.current_endpoint)
-            .or_else(|| self.first_endpoint())
-            .ok_or("internal-error")?
-            .clone();
+        .iter()
+        .find(|&e| e == &self.current_endpoint)
+        .or_else(|| self.first_endpoint())
+        .ok_or("internal-error")?
+        .clone();
         Ok(())
     }
 
@@ -120,11 +120,11 @@ impl TauriStateSync {
 
     fn effective_folder(&self) -> PathBuf {
         self.current_endpoint
-            .game_folder
-            .as_ref()
-            .or(self.game_folder.as_ref())
-            .cloned()
-            .unwrap_or_else(|| std::env::current_dir().unwrap())
+        .game_folder
+        .as_ref()
+        .or(self.game_folder.as_ref())
+        .cloned()
+        .unwrap_or_else(|| std::env::current_dir().unwrap())
     }
 }
 
@@ -201,20 +201,20 @@ async fn initial_data(state: tauri::State<'_, TauriState>) -> Result<InitialData
     let (userdata, password) = state_sync.user_manager.get(&state_sync.current_endpoint);
     Ok(InitialDataPayload {
         style: state_sync.style,
-        endpoints: state_sync.endpoints.clone(),
-        remote_endpoints: state_sync.remote_endpoints.clone(),
-        current_endpoint: state_sync.current_endpoint.clone(),
-        remote_messages: state_sync.remote_messages.clone(),
-        username: userdata.username,
-        password,
-        remember_me: userdata.remember_me,
-        game_folder: state_sync.game_folder.clone(),
-        current_folder: std::env::current_dir().unwrap(),
-        locale: state_sync.locale.clone(),
-        last_char_id: state_sync.last_char_id,
-        serverlist_url: state_sync.serverlist_url.clone(),
-        messagelist_url: state_sync.messagelist_url.clone(),
-        settings: settings::get_settings(&state_sync.effective_folder()),
+       endpoints: state_sync.endpoints.clone(),
+       remote_endpoints: state_sync.remote_endpoints.clone(),
+       current_endpoint: state_sync.current_endpoint.clone(),
+       remote_messages: state_sync.remote_messages.clone(),
+       username: userdata.username,
+       password,
+       remember_me: userdata.remember_me,
+       game_folder: state_sync.game_folder.clone(),
+       current_folder: std::env::current_dir().unwrap(),
+       locale: state_sync.locale.clone(),
+       last_char_id: state_sync.last_char_id,
+       serverlist_url: state_sync.serverlist_url.clone(),
+       messagelist_url: state_sync.messagelist_url.clone(),
+       settings: settings::get_settings(&state_sync.effective_folder()),
     })
 }
 
@@ -281,8 +281,8 @@ async fn set_remote_endpoints(
         state_sync.ensure_current_endpoint()?;
     }
     state_sync
-        .remote_endpoints
-        .update_config(&mut state_sync.remote_endpoints_config);
+    .remote_endpoints
+    .update_config(&mut state_sync.remote_endpoints_config);
     let current_endpoint = state_sync.current_endpoint.clone();
     let remote_endpoints_config = state_sync.remote_endpoints_config.clone();
     state_sync.store.with(|s| {
@@ -310,13 +310,13 @@ async fn set_current_endpoint(
         state_sync.cancel_shared.cancel();
         state_sync.cancel_launcher.cancel();
         state_sync.cancel_launcher = CancellationToken::new();
- 
+
         // lightweight cache TTL (e.g. 5 s):
         let stale = state_sync
-            .launcher_ts
-            .map(|t| SystemTime::now().duration_since(t).unwrap().as_secs() > 5)
-            .unwrap_or(true);
- 
+        .launcher_ts
+        .map(|t| SystemTime::now().duration_since(t).unwrap().as_secs() > 5)
+        .unwrap_or(true);
+
         if state_sync.current_endpoint == current_endpoint && !stale {
             if let Some(launcher_resp) = &state_sync.launcher_resp {
                 return Ok(launcher_resp.clone());
@@ -326,13 +326,13 @@ async fn set_current_endpoint(
         state_sync.current_endpoint = current_endpoint.clone();
         let (userdata, password) = state_sync.user_manager.get(&state_sync.current_endpoint);
         window
-            .emit("userdata", UserDataPayload { userdata, password })
-            .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
+        .emit("userdata", UserDataPayload { userdata, password })
+        .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
         if !state_sync.contains_endpoint(&current_endpoint) {
             let payload = if current_endpoint.is_remote {
                 state_sync
-                    .remote_endpoints
-                    .insert(0, current_endpoint.clone());
+                .remote_endpoints
+                .insert(0, current_endpoint.clone());
                 EndpointsPayload {
                     remote_endpoints: Some(state_sync.remote_endpoints.clone()),
                     ..Default::default()
@@ -347,22 +347,22 @@ async fn set_current_endpoint(
                 }
             };
             window
-                .emit("endpoints", payload)
-                .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
+            .emit("endpoints", payload)
+            .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
         }
         state_sync
-            .store
-            .with(|s| s.set("current_endpoint", current_endpoint.clone()));
+        .store
+        .with(|s| s.set("current_endpoint", current_endpoint.clone()));
         server::launcher_request(
             &state.client,
             state_sync.cancel_launcher.clone(),
-            &state_sync.current_endpoint,
+                                 &state_sync.current_endpoint,
         )
     };
     let launcher_resp = req.send().await.map_err(|e| e.into_frontend())?;
     let mut state_sync = state.state_sync.lock().await;
     state_sync.launcher_resp = Some(launcher_resp.clone());
-	state_sync.launcher_ts = Some(SystemTime::now());
+    state_sync.launcher_ts = Some(SystemTime::now());
     Ok(launcher_resp)
 }
 
@@ -396,13 +396,13 @@ async fn set_serverlist_url(
         state_sync.remote_endpoints = config::get_default_endpoints();
         if state_sync.current_endpoint.is_remote
             && !state_sync
-                .remote_endpoints
-                .contains(&state_sync.current_endpoint)
-        {
-            let current_endpoint = state_sync.current_endpoint.clone();
-            state_sync.remote_endpoints.push(current_endpoint);
-        }
-        state_sync
+            .remote_endpoints
+            .contains(&state_sync.current_endpoint)
+            {
+                let current_endpoint = state_sync.current_endpoint.clone();
+                state_sync.remote_endpoints.push(current_endpoint);
+            }
+            state_sync
             .remote_endpoints
             .apply_config(&state_sync.remote_endpoints_config);
         let payload = EndpointsPayload {
@@ -410,8 +410,8 @@ async fn set_serverlist_url(
             ..Default::default()
         };
         window
-            .emit("endpoints", payload)
-            .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
+        .emit("endpoints", payload)
+        .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
     } else {
         let req = {
             let mut state_sync = state.state_sync.lock().await;
@@ -423,7 +423,7 @@ async fn set_serverlist_url(
             server::simple_request(
                 &state.client,
                 state_sync.cancel_serverlist.clone(),
-                &serverlist_url,
+                                   &serverlist_url,
             )
         };
         handle_remote_endpoints(&window, req, state.state_sync.clone()).await;
@@ -431,8 +431,8 @@ async fn set_serverlist_url(
     let mut state_sync = state.state_sync.lock().await;
     state_sync.serverlist_url = serverlist_url.clone();
     state_sync
-        .store
-        .with(|s| s.set("serverlist_url", serverlist_url));
+    .store
+    .with(|s| s.set("serverlist_url", serverlist_url));
     Ok(())
 }
 
@@ -454,7 +454,7 @@ async fn set_messagelist_url(
             server::simple_request(
                 &state.client,
                 state_sync.cancel_messagelist.clone(),
-                &messagelist_url,
+                                   &messagelist_url,
             )
         };
         let state_sync_mutex = state.state_sync.clone();
@@ -462,8 +462,8 @@ async fn set_messagelist_url(
     }
     let mut state_sync = state.state_sync.lock().await;
     state_sync
-        .store
-        .with(|s| s.set("messagelist_url", messagelist_url));
+    .store
+    .with(|s| s.set("messagelist_url", messagelist_url));
     Ok(())
 }
 
@@ -475,82 +475,156 @@ async fn auth(
     remember_me: bool,
     auth_req: JsonRequest<AuthResponse>,
 ) -> Result<AuthPayload, String> {
+    info!("🔵 [AUTH] Starting authentication process...");
+
     // ── 1) perform login ──────────────────────────────────────────────
+    info!("🔵 [AUTH] Sending login request...");
     let auth_resp = auth_req
-        .send()
-        .await
-        .map_err(|e| e.into_frontend())?;
+    .send()
+    .await
+    .map_err(|e| {
+        error!("❌ [AUTH] Login failed: {}", e);
+        e.into_frontend()
+    })?;
+    info!("✅ [AUTH] Login successful for user: {}", username);
+
+    // ✅ Lock state and get game folder BEFORE any file operations
+    let game_folder = {
+        let state_sync = state.state_sync.lock().await;
+        let folder = state_sync.effective_folder();
+        info!("🔵 [AUTH] Game folder: {:?}", folder);
+        folder
+    };
+
+    // ✅ CREATE CRITICAL DIRECTORIES
+    info!("🔵 [AUTH] Creating launcher_config directory...");
+    let launcher_config_dir = game_folder.join("launcher_config");
+    if let Err(e) = std::fs::create_dir_all(&launcher_config_dir) {
+        error!("❌ [AUTH] Failed to create launcher_config: {}", e);
+        return Err(format!("directory-creation-error: {}", e));
+    }
+    info!("✅ [AUTH] Directory created: {:?}", launcher_config_dir);
 
     // ── 2) read local client version ──────────────────────────────────
-    let local_version = std::fs::read_to_string("ButterVersion.txt")
-        .unwrap_or_default()
-        .trim()
-        .to_string();
+    let version_file = game_folder.join("ButterVersion.txt");
+    info!("🔵 [AUTH] Reading version from: {:?}", version_file);
+    let local_version = std::fs::read_to_string(&version_file)
+    .unwrap_or_else(|e| {
+        warn!("⚠️ [AUTH] ButterVersion.txt not found: {}", e);
+        String::new()
+    })
+    .trim()
+    .to_string();
+    info!("🔵 [AUTH] Local version: '{}'", local_version);
 
     // ── identify active server (whose files sit on disk) ──────────────
-    let active_server = std::fs::read_to_string("launcher_config/active_server")
-        .unwrap_or_default()
-        .trim()
-        .to_string();
+    let active_server_file = launcher_config_dir.join("active_server");
+    info!("🔵 [AUTH] Reading active server from: {:?}", active_server_file);
+    let active_server = std::fs::read_to_string(&active_server_file)
+    .unwrap_or_else(|e| {
+        warn!("⚠️ [AUTH] active_server file not found: {}", e);
+        String::new()
+    })
+    .trim()
+    .to_string();
+    info!("🔵 [AUTH] Active server: '{}'", active_server);
 
     // hostname of the server
     let raw_url = auth_resp.patch_server.clone();
+    info!("🔵 [AUTH] Patch server URL: '{}'", raw_url);
+
     let server_name = Url::parse(&raw_url)
-        .ok()
-        .and_then(|u| u.host_str().map(|s| s.to_owned()))
-        .unwrap_or_default();
+    .ok()
+    .and_then(|u| u.host_str().map(|s| s.to_owned()))
+    .unwrap_or_default();
+    info!("🔵 [AUTH] Server hostname: '{}'", server_name);
 
     // reuse ButterVersion.txt as an If-None-Match tag
     let etag_for_header: &str = if active_server == server_name {
+        info!("✅ [AUTH] Server matches active_server, using version as ETag");
         &local_version
     } else {
+        info!("⚠️ [AUTH] Server changed! Old: '{}', New: '{}'", active_server, server_name);
         ""
     };
 
     // ── 3) fetch patch list if patch_server is set ────────────────────
+    info!("🔵 [AUTH] Checking for patches...");
     let mut raw_patcher_resp: Option<PatcherResponse> =
-        if !raw_url.is_empty() {                       // ← use raw_url here
-            let state_sync = state.state_sync.lock().await;
-            server::patcher_request(
-                &state.client,
-                state_sync.cancel_shared.clone(),
-                &raw_url,
-                etag_for_header,
-            )
-            .send()
-            .await
-            .map_err(|e| e.into_frontend())?
-        } else {
-            None
-        };
+    if !raw_url.is_empty() {
+        info!("🔵 [AUTH] Fetching patch list from: {}", raw_url);
+        let state_sync = state.state_sync.lock().await;
+        let result = server::patcher_request(
+            &state.client,
+            state_sync.cancel_shared.clone(),
+                                             &raw_url,
+                                             etag_for_header,
+        )
+        .send()
+        .await
+        .map_err(|e| {
+            error!("❌ [AUTH] Patcher request failed: {}", e);
+            e.into_frontend()
+        })?;
+        info!("✅ [AUTH] Patcher response received");
+        result
+    } else {
+        info!("⚠️ [AUTH] No patch server specified, skipping patches");
+        None
+    };
 
     // ── 3.5) early version-gate: skip only when same server *and* version
     if active_server == server_name && raw_patcher_resp.is_some() {
+        info!("🔵 [AUTH] Checking server version...");
         let version_url = format!("{}/ButterVersion.txt", raw_url);
         let server_version = match state.client.get(&version_url).send().await {
-            Ok(resp) => resp.text().await.unwrap_or_default().trim().to_string(),
-            Err(_)   => String::new(),
+            Ok(resp) => {
+                let ver = resp.text().await.unwrap_or_default().trim().to_string();
+                info!("🔵 [AUTH] Server version: '{}'", ver);
+                ver
+            }
+            Err(e) => {
+                warn!("⚠️ [AUTH] Failed to fetch server version: {}", e);
+                String::new()
+            }
         };
+
         if server_version == local_version {
+            info!("✅ [AUTH] Versions match, skipping patches");
             raw_patcher_resp = None;
+        } else {
+            info!("🔵 [AUTH] Version mismatch! Local: '{}', Server: '{}'", local_version, server_version);
+        }
+    }
+
+    // ✅ SAVE ACTIVE SERVER TO DISK
+    if !server_name.is_empty() && server_name != active_server {
+        info!("🔵 [AUTH] Updating active_server file to: '{}'", server_name);
+        if let Err(e) = std::fs::write(&active_server_file, &server_name) {
+            error!("❌ [AUTH] Failed to write active_server: {}", e);
+        } else {
+            info!("✅ [AUTH] active_server file updated");
         }
     }
 
     // ── 4) lock and store everything ─────────────────────────────────
+    info!("🔵 [AUTH] Storing authentication data...");
     let mut state_sync = state.state_sync.lock().await;
     state_sync.auth_resp   = Some(auth_resp.clone());
     state_sync.patcher_resp = raw_patcher_resp;
     let has_patch = state_sync.patcher_resp.is_some();
+    info!("🔵 [AUTH] Has patches: {}", has_patch);
 
     let endpoint_snapshot = state_sync.current_endpoint.clone();
     state_sync.user_manager.set(
         &endpoint_snapshot,
         UserData { username: username.clone(), remember_me },
-        password.clone(),
+                                password.clone(),
     );
     let um_snapshot = state_sync.user_manager.clone();
     state_sync.store.with(|s| s.set("user_manager", &um_snapshot));
 
+    info!("✅ [AUTH] Authentication complete!");
     Ok(AuthPayload { response: auth_resp, has_patch })
 }
 
@@ -571,9 +645,9 @@ async fn login(
         server::login_request(
             &state.client,
             state_sync.cancel_shared.clone(),
-            &state_sync.current_endpoint,
-            &username,
-            &password,
+                              &state_sync.current_endpoint,
+                              &username,
+                              &password,
         )
     };
     auth(state, username, password, remember_me, auth_req).await
@@ -596,9 +670,9 @@ async fn register(
         server::register_request(
             &state.client,
             state_sync.cancel_shared.clone(),
-            &state_sync.current_endpoint,
-            &username,
-            &password,
+                                 &state_sync.current_endpoint,
+                                 &username,
+                                 &password,
         )
     };
     auth(state, username, password, remember_me, auth_req).await
@@ -613,9 +687,9 @@ async fn reauth(state: &mut tauri::State<'_, TauriState>) -> Result<(), String> 
         server::login_request(
             &state.client,
             state_sync.cancel_shared.clone(),
-            &state_sync.current_endpoint,
-            &userdata.username,
-            &password,
+                              &state_sync.current_endpoint,
+                              &userdata.username,
+                              &password,
         )
     };
     let data = req.send().await.map_err(|e| e.into_frontend())?;
@@ -635,8 +709,8 @@ async fn get_create_character_request(
     let req = server::create_character_request(
         &state.client,
         state_sync.cancel_shared.clone(),
-        &state_sync.current_endpoint,
-        &state_sync.auth_resp_err()?.user.token,
+                                               &state_sync.current_endpoint,
+                                               &state_sync.auth_resp_err()?.user.token,
     );
     Ok(req)
 }
@@ -659,11 +733,11 @@ async fn create_character(
     let mut state_sync = state.state_sync.lock().await;
     state_sync.exit_reason = Some(ExitSignal::RunGame(character.id, true));
     state_sync
-        .auth_resp
-        .as_mut()
-        .ok_or("Auth data was not set")?
-        .characters
-        .push(character.clone());
+    .auth_resp
+    .as_mut()
+    .ok_or("Auth data was not set")?
+    .characters
+    .push(character.clone());
     state_sync.store.with(|s| {
         s.set("last_char_id", character.id);
     });
@@ -680,17 +754,40 @@ async fn select_character(
     state: tauri::State<'_, TauriState>,
     character_id: u32,
 ) -> Result<(), String> {
+    info!("🔵 [SELECT_CHAR] Character selected: {}", character_id);
+
+    let game_folder = {
+        let state_sync = state.state_sync.lock().await;
+        state_sync.effective_folder()
+    };
+
+    info!("🔵 [SELECT_CHAR] Game folder: {:?}", game_folder);
+
+    // ✅ Verifica solo mhf.ini (il file critico)
+    let mhf_ini = game_folder.join("mhf.ini");
+
+    info!("🔵 [SELECT_CHAR] Checking critical files...");
+    if !mhf_ini.exists() {
+        error!("❌ [SELECT_CHAR] mhf.ini NOT FOUND at: {:?}", mhf_ini);
+        return Err("game-files-missing: mhf.ini not found".into());
+    }
+    info!("✅ [SELECT_CHAR] mhf.ini exists");
+
     let mut state_sync = state.state_sync.lock().await;
     state_sync.exit_reason = Some(ExitSignal::RunGame(character_id, false));
     state_sync.store.with(|s| {
         s.set("last_char_id", character_id);
     });
+
+    info!("✅ [SELECT_CHAR] Exit signal set, closing window...");
     window.close().map_err(|e| {
-        error!("failed to close window: {}", e);
+        error!("❌ [SELECT_CHAR] Failed to close window: {}", e);
         "internal-error"
     })?;
+
     Ok(())
 }
+
 
 async fn get_delete_character_request(
     state: &mut tauri::State<'_, TauriState>,
@@ -702,9 +799,9 @@ async fn get_delete_character_request(
     let req = server::delete_character_request(
         &state.client,
         state_sync.cancel_shared.clone(),
-        &state_sync.current_endpoint,
-        &state_sync.auth_resp_err()?.user.token,
-        character_id,
+                                               &state_sync.current_endpoint,
+                                               &state_sync.auth_resp_err()?.user.token,
+                                               character_id,
     );
     Ok(req)
 }
@@ -735,9 +832,9 @@ async fn get_export_character_request(
     let req = server::export_save_request(
         &state.client,
         CancellationToken::new(),
-        &state_sync.current_endpoint,
-        &state_sync.auth_resp_err()?.user.token,
-        character_id,
+                                          &state_sync.current_endpoint,
+                                          &state_sync.auth_resp_err()?.user.token,
+                                          character_id,
     );
     Ok(req)
 }
@@ -762,15 +859,15 @@ async fn export_character(
     let folder_name = format!("./saves/{}-{}.json", id, name);
     let path = Path::new(&folder_name);
     path.parent()
-        .and_then(|p| std::fs::create_dir_all(p).ok())
-        .ok_or("file-error")?;
+    .and_then(|p| std::fs::create_dir_all(p).ok())
+    .ok_or("file-error")?;
     File::options()
-        .write(true)
-        .create(true)
-        .open(path)
-        .ok()
-        .and_then(|f| serde_json::to_writer_pretty(f, &data).ok())
-        .ok_or("file-error")?;
+    .write(true)
+    .create(true)
+    .open(path)
+    .ok()
+    .and_then(|f| serde_json::to_writer_pretty(f, &data).ok())
+    .ok_or("file-error")?;
     path::absolute(path).or(Err("file-error".into()))
 }
 
@@ -782,9 +879,9 @@ async fn patcher_start(window: Window, state: tauri::State<'_, TauriState>) -> R
         state_sync.cancel_shared = CancellationToken::new();
         (
             state_sync.auth_resp_err()?.patch_server.clone(),
-            state_sync.patcher_resp.take(),
-            state_sync.effective_folder(),
-            state_sync.cancel_shared.clone(),
+         state_sync.patcher_resp.take(),
+         state_sync.effective_folder(),
+         state_sync.cancel_shared.clone(),
         )
     };
     let Some(patcher_resp) = patcher_resp else {
@@ -875,8 +972,8 @@ async fn handle_remote_endpoints(
         Err(e) => {
             warn!("failed to fetch remote servers: {}", e);
             window
-                .emit("log", LogPayload::warning("remote-endpoint-error"))
-                .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
+            .emit("log", LogPayload::warning("remote-endpoint-error"))
+            .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
             return;
         }
     };
@@ -889,18 +986,18 @@ async fn handle_remote_endpoints(
     let state_sync = &mut *state_sync_mutex.lock().await;
     if state_sync.current_endpoint.is_remote
         && !remote_endpoints.contains(&state_sync.current_endpoint)
-    {
-        remote_endpoints.insert(default_len, state_sync.current_endpoint.clone())
-    }
-    remote_endpoints.apply_config(&state_sync.remote_endpoints_config);
+        {
+            remote_endpoints.insert(default_len, state_sync.current_endpoint.clone())
+        }
+        remote_endpoints.apply_config(&state_sync.remote_endpoints_config);
     state_sync.remote_endpoints = remote_endpoints;
     let payload = EndpointsPayload {
         remote_endpoints: Some(state_sync.remote_endpoints.clone()),
         ..Default::default()
     };
     window
-        .emit("endpoints", payload)
-        .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
+    .emit("endpoints", payload)
+    .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
 }
 
 async fn handle_remote_messages(
@@ -923,11 +1020,11 @@ async fn handle_remote_messages(
     .unwrap_or_else(|e| warn!("failed to emit message: {}", e));
 }
 
- impl From<server::FriendData> for mhf_iel::FriendData {
-     fn from(f: server::FriendData) -> Self {
-         mhf_iel::FriendData { cid: f.cid, id: f.id, name: f.name }
-     }
- }
+impl From<server::FriendData> for mhf_iel::FriendData {
+    fn from(f: server::FriendData) -> Self {
+        mhf_iel::FriendData { cid: f.cid, id: f.id, name: f.name }
+    }
+}
 
 // also support mapping &server::FriendData
 impl From<&server::FriendData> for mhf_iel::FriendData {
@@ -988,9 +1085,9 @@ fn main() {
                 remote_endpoints: default_endpoints,
                 current_endpoint,
                 locale: "en".into(),
-                serverlist_url: DEFAULT_SERVERLIST_URL.into(),
-                messagelist_url: DEFAULT_MESSAGELIST_URL.into(),
-                ..Default::default()
+                                                 serverlist_url: DEFAULT_SERVERLIST_URL.into(),
+                                                 messagelist_url: DEFAULT_MESSAGELIST_URL.into(),
+                                                 ..Default::default()
             }));
             // resolve <game>/ButterClient/config.json
             let game_root = {
@@ -1013,120 +1110,120 @@ fn main() {
                 builder = builder.plugin(log_plugin);
             }
             let mut app = builder
-                .manage(TauriState {
-                    client: reqwest::ClientBuilder::new().gzip(true).build().unwrap(),
+            .manage(TauriState {
+                client: reqwest::ClientBuilder::new().gzip(true).build().unwrap(),
                     state_sync: state_sync.clone(),
-                })
-                .setup(|app| {
-                    let mut window = app.get_window("main").unwrap();
-                    window.hide().unwrap();
-					let state: tauri::State<'_, TauriState> = app.state();
-                    // ─── build Store in <game-root>/ButterClient/config.json ────────────────
-                    let app_handle = app.handle();
+            })
+            .setup(|app| {
+                let mut window = app.get_window("main").unwrap();
+                window.hide().unwrap();
+                let state: tauri::State<'_, TauriState> = app.state();
+                // ─── build Store in <game-root>/ButterClient/config.json ────────────────
+                let app_handle = app.handle();
 
-                    let old_store_path = app
-                        .path_resolver()
-                        .app_config_dir()
-                        .unwrap()
-                        .join("config.json");                  // %APPDATA%/config.json
+                let old_store_path = app
+                .path_resolver()
+                .app_config_dir()
+                .unwrap()
+                .join("config.json");                  // %APPDATA%/config.json
 
-                    let game_root = {
-                        let guard = state.state_sync.blocking_lock();
-                        guard.effective_folder()
-                    };
-                    let new_store_path = game_root.join("launcher_config/config.json");
+                let game_root = {
+                    let guard = state.state_sync.blocking_lock();
+                    guard.effective_folder()
+                };
+                let new_store_path = game_root.join("launcher_config/config.json");
 
-                    // first-run migration
-                    migrate_config_file(&old_store_path, &new_store_path);
+                // first-run migration
+                migrate_config_file(&old_store_path, &new_store_path);
 
-                    // create the store on the new absolute path
-                    let mut store = StoreBuilder::new(app_handle, new_store_path.clone()).build();
-                    let state_sync = &mut *state.state_sync.blocking_lock();
-                    match &mut store.load() {
-                        Ok(_) => {
-                            store::get(&store, "style", &mut state_sync.style);
-                            store::get(&store, "locale", &mut state_sync.locale);
-                            store::get(&store, "endpoints", &mut state_sync.endpoints);
-                            store::get(
-                                &store,
-                                "remote_endpoints_config",
-                                &mut state_sync.remote_endpoints_config,
-                            );
-                            store::get(
-                                &store,
-                                "current_endpoint",
-                                &mut state_sync.current_endpoint,
-                            );
-                            store::get(&store, "user_manager", &mut state_sync.user_manager);
-                            store::get(&store, "game_folder", &mut state_sync.game_folder);
-                            store::get(&store, "last_char_id", &mut state_sync.last_char_id);
-                            store::get(&store, "serverlist_url", &mut state_sync.serverlist_url);
-                            store::get(&store, "messagelist_url", &mut state_sync.messagelist_url);
-                            state_sync
-                                .remote_endpoints
-                                .apply_config(&state_sync.remote_endpoints_config);
-                            handle_style(&mut window, state_sync.style);
-                        }
-                        Err(e) => {
-                            info!("unable to load config from disk: {}", e);
-                            // ← AGGIUNGI QUESTO: Applica lo stile anche al primo avvio
-                            handle_style(&mut window, state_sync.style);
-                        }
-                    }
-                    state_sync.store = StoreHelper::new(store);
-                    window.show().unwrap();
-                    if !state_sync.serverlist_url.is_empty() {
-                        let endpoints_req = server::simple_request(
-                            &state.client,
-                            state_sync.cancel_serverlist.clone(),
-                            &state_sync.serverlist_url,
+                // create the store on the new absolute path
+                let mut store = StoreBuilder::new(app_handle, new_store_path.clone()).build();
+                let state_sync = &mut *state.state_sync.blocking_lock();
+                match &mut store.load() {
+                    Ok(_) => {
+                        store::get(&store, "style", &mut state_sync.style);
+                        store::get(&store, "locale", &mut state_sync.locale);
+                        store::get(&store, "endpoints", &mut state_sync.endpoints);
+                        store::get(
+                            &store,
+                            "remote_endpoints_config",
+                            &mut state_sync.remote_endpoints_config,
                         );
-                        let state_sync_mutex = state.state_sync.clone();
-                        let window = window.clone();
-                        tauri::async_runtime::spawn(async move {
-                            handle_remote_endpoints(&window, endpoints_req, state_sync_mutex).await
-                        });
-                    }
-                    if !state_sync.messagelist_url.is_empty() {
-                        let messages_req = server::simple_request(
-                            &state.client,
-                            state_sync.cancel_messagelist.clone(),
-                            &state_sync.messagelist_url,
+                        store::get(
+                            &store,
+                            "current_endpoint",
+                            &mut state_sync.current_endpoint,
                         );
-                        let state_sync_mutex = state.state_sync.clone();
-                        let window = window.clone();
-                        tauri::async_runtime::spawn(async move {
-                            handle_remote_messages(&window, messages_req, state_sync_mutex).await
-                        });
+                        store::get(&store, "user_manager", &mut state_sync.user_manager);
+                        store::get(&store, "game_folder", &mut state_sync.game_folder);
+                        store::get(&store, "last_char_id", &mut state_sync.last_char_id);
+                        store::get(&store, "serverlist_url", &mut state_sync.serverlist_url);
+                        store::get(&store, "messagelist_url", &mut state_sync.messagelist_url);
+                        state_sync
+                        .remote_endpoints
+                        .apply_config(&state_sync.remote_endpoints_config);
+                        handle_style(&mut window, state_sync.style);
                     }
-                    Ok(())
-                })
+                    Err(e) => {
+                        info!("unable to load config from disk: {}", e);
+                        // ← AGGIUNGI QUESTO: Applica lo stile anche al primo avvio
+                        handle_style(&mut window, state_sync.style);
+                    }
+                }
+                state_sync.store = StoreHelper::new(store);
+                window.show().unwrap();
+                if !state_sync.serverlist_url.is_empty() {
+                    let endpoints_req = server::simple_request(
+                        &state.client,
+                        state_sync.cancel_serverlist.clone(),
+                                                               &state_sync.serverlist_url,
+                    );
+                    let state_sync_mutex = state.state_sync.clone();
+                    let window = window.clone();
+                    tauri::async_runtime::spawn(async move {
+                        handle_remote_endpoints(&window, endpoints_req, state_sync_mutex).await
+                    });
+                }
+                if !state_sync.messagelist_url.is_empty() {
+                    let messages_req = server::simple_request(
+                        &state.client,
+                        state_sync.cancel_messagelist.clone(),
+                                                              &state_sync.messagelist_url,
+                    );
+                    let state_sync_mutex = state.state_sync.clone();
+                    let window = window.clone();
+                    tauri::async_runtime::spawn(async move {
+                        handle_remote_messages(&window, messages_req, state_sync_mutex).await
+                    });
+                }
+                Ok(())
+            })
 
-                .invoke_handler(tauri::generate_handler![
-                    initial_data,
-                    set_style,
-                    set_locale,
-                    set_setting,
-                    set_endpoints,
-                    set_remote_endpoints,
-                    set_current_endpoint,
-                    set_game_folder,
-                    set_serverlist_url,
-                    set_messagelist_url,
-                    login,
-                    register,
-                    create_character,
-                    select_character,
-                    delete_character,
-                    export_character,
-                    patcher_start,
-                    patcher_stop,
-					patcher::reset_game_files,
-					check_first_run,
-                    complete_first_run_setup
-                ])
-                .build(tauri::generate_context!())
-                .expect("error while building tauri application");
+            .invoke_handler(tauri::generate_handler![
+                initial_data,
+                set_style,
+                set_locale,
+                set_setting,
+                set_endpoints,
+                set_remote_endpoints,
+                set_current_endpoint,
+                set_game_folder,
+                set_serverlist_url,
+                set_messagelist_url,
+                login,
+                register,
+                create_character,
+                select_character,
+                delete_character,
+                export_character,
+                patcher_start,
+                patcher_stop,
+                patcher::reset_game_files,
+                check_first_run,
+                complete_first_run_setup
+            ])
+            .build(tauri::generate_context!())
+            .expect("error while building tauri application");
             loop {
                 let iteration = app.run_iteration();
                 if iteration.window_count == 0 {
@@ -1137,23 +1234,41 @@ fn main() {
 
             let state_sync = state_sync.blocking_lock();
             if let Some(ExitSignal::RunGame(char_id, char_new)) = state_sync.exit_reason {
+                info!("🎮 [GAME_START] Preparing to launch game...");
+                info!("🎮 [GAME_START] Character ID: {}, New: {}", char_id, char_new);
+
                 let auth_resp = state_sync.auth_resp.as_ref().unwrap();
                 let char = auth_resp
-                    .characters
-                    .iter()
-                    .find(|c| c.id == char_id)
-                    .unwrap();
+                .characters
+                .iter()
+                .find(|c| c.id == char_id)
+                .unwrap();
+
+                info!("🎮 [GAME_START] Character: {}", char.name);
+
                 let char_ids = auth_resp.characters.iter().map(|c| c.id).collect();
                 let notices = auth_resp
-                    .notices
-                    .iter()
-                    .map(|n| mhf_iel::Notice {
-                        flags: 0,
-                        data: n.clone(),
-                    })
-                    .collect();
+                .notices
+                .iter()
+                .map(|n| mhf_iel::Notice {
+                    flags: 0,
+                    data: n.clone(),
+                })
+                .collect();
                 let (userdata, password) =
-                    state_sync.user_manager.get(&state_sync.current_endpoint);
+                state_sync.user_manager.get(&state_sync.current_endpoint);
+
+                let game_folder = state_sync.effective_folder();
+                info!("🎮 [GAME_START] Game folder: {:?}", game_folder);
+
+                // ✅ VERIFICA FINALE FILES CRITICI
+                let mhf_ini = game_folder.join("mhf.ini");
+                if !mhf_ini.exists() {
+                    error!("❌ [GAME_START] CRITICAL: mhf.ini missing at {:?}", mhf_ini);
+                    error!("❌ [GAME_START] Game cannot start without mhf.ini!");
+                    break; // Non avviare il gioco
+                }
+                info!("✅ [GAME_START] mhf.ini verified");
 
                 let mut config = MhfConfig {
                     char_id,
@@ -1167,11 +1282,11 @@ fn main() {
                     user_name: userdata.username,
                     user_password: password,
                     user_rights: auth_resp.user.rights,
-					friends: auth_resp
-					    .friends
-						.iter()
-						.map(Into::into)
-						.collect(),
+                    friends: auth_resp
+                    .friends
+                    .iter()
+                    .map(Into::into)
+                    .collect(),
                     server_host: state_sync.current_endpoint.host(),
                     server_port: state_sync.current_endpoint.game_port.unwrap_or(53310) as u32,
                     entrance_count: auth_resp.entrance_count,
@@ -1187,13 +1302,14 @@ fn main() {
                     mhf_flags: None,
                     version: state_sync.current_endpoint.version,
 
-                    mhf_folder: state_sync
-                        .current_endpoint
-                        .game_folder
-                        .as_ref()
-                        .or_else(|| state_sync.game_folder.as_ref())
-                        .cloned(),
+                    mhf_folder: Some(game_folder.clone()),
                 };
+
+                info!("🎮 [GAME_START] Config prepared:");
+                info!("  - Server: {}:{}", config.server_host, config.server_port);
+                info!("  - Folder: {:?}", config.mhf_folder);
+                info!("  - Version: {:?}", config.version);
+
                 if let Some(mez_fes) = auth_resp.mez_fez.as_ref() {
                     config.mez_event_id = mez_fes.id;
                     config.mez_start = mez_fes.start;
@@ -1201,10 +1317,10 @@ fn main() {
                     config.mez_solo_tickets = mez_fes.solo_tickets;
                     config.mez_group_tickets = mez_fes.group_tickets;
                     config.mez_stalls = mez_fes
-                        .stalls
-                        .iter()
-                        .map(|&s| mhf_iel::MezFesStall::try_from(s).unwrap())
-                        .collect();
+                    .stalls
+                    .iter()
+                    .map(|&s| mhf_iel::MezFesStall::try_from(s).unwrap())
+                    .collect();
                 }
                 (config, true)
             } else {
@@ -1214,6 +1330,7 @@ fn main() {
         if run {
             #[cfg(target_os = "windows")]
             {
+                info!("🎮 [GAME_START] Launching Windows game...");
                 match mhf_iel::run(config).unwrap() {
                     102 => {}
                     code => {
@@ -1232,8 +1349,12 @@ fn main() {
                 .clone()
                 .unwrap_or_else(|| std::env::current_dir().unwrap());
 
-                let cfg_linux = lib_linux::MhfConfigLinux { game_folder };
+                let cfg_linux = lib_linux::MhfConfigLinux {     game_folder,
+                config,
 
+                };
+
+                info!("🎮 [GAME_START] Launching Linux game via Wine...");
                 // ✅ Lancia il gioco in background detachato dal launcher
                 match lib_linux::run_linux(cfg_linux) {
                     Ok(_) => {
@@ -1258,4 +1379,3 @@ fn main() {
     }
     info!("app exit");
 }
-

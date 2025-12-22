@@ -4,10 +4,12 @@ use std::env;
 use std::fs::OpenOptions;
 use std::io::Write;
 use log::{info, debug, error};
+use mhf_iel::MhfConfig;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MhfConfigLinux {
     pub game_folder: PathBuf,
+    pub config: MhfConfig,
 }
 
 fn log_to_file(msg: &str) {
@@ -34,7 +36,6 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
     log_to_file("🔤 Installing Japanese fonts...");
     info!("Installing Japanese fonts from fonts/ folder...");
 
-    // Copia tutti i font dalla cartella fonts/
     if let Ok(entries) = std::fs::read_dir(&fonts_source) {
         for entry in entries.flatten() {
             let path = entry.path();
@@ -44,8 +45,8 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
                     if let Some(filename) = path.file_name() {
                         let dest = fonts_dest.join(filename);
                         match std::fs::copy(&path, &dest) {
-                            Ok(_) => log_to_file(&format!("  ✅ Installed: {:?}", filename)),
-                            Err(e) => log_to_file(&format!("  ❌ Failed to copy {:?}: {}", filename, e)),
+                            Ok(_) => log_to_file(&format!("   ✅ Installed: {:?}", filename)),
+                            Err(e) => log_to_file(&format!("   ❌ Failed to copy {:?}: {}", filename, e)),
                         }
                     }
                 }
@@ -57,17 +58,80 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
     info!("Japanese fonts installation complete");
 }
 
-pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
+pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
     info!("=== Monster Hunter Frontier - Linux Launcher ===");
     log_to_file("=== MHFZ Font Debug Log ===");
-    debug!("Game folder: {:?}", config.game_folder);
+
+    debug!("Game folder: {:?}", cfg.game_folder);
+
+    // ✅ CRITICAL FIX: Scrivi config.json PRIMA di lanciare il gioco
+    info!("📝 Writing config.json...");
+    let config_path = cfg.game_folder.join("config.json");
+
+    // ✅ Converti manualmente i tipi per evitare problemi di serializzazione
+    let notices_json: Vec<serde_json::Value> = cfg.config.notices.iter().map(|n| {
+        serde_json::json!({
+            "flags": n.flags,
+            "data": &n.data
+        })
+    }).collect();
+
+    let friends_json: Vec<serde_json::Value> = cfg.config.friends.iter().map(|f| {
+        serde_json::json!({
+            "cid": f.cid,
+            "id": f.id,
+            "name": &f.name
+        })
+    }).collect();
+
+    let mez_stalls_str: Vec<String> = cfg.config.mez_stalls.iter().map(|s| {
+        format!("{:?}", s)
+    }).collect();
+
+    let config_json = serde_json::json!({
+        "char_id": cfg.config.char_id,
+        "char_name": &cfg.config.char_name,
+        "char_new": cfg.config.char_new,
+        "char_hr": cfg.config.char_hr,
+        "char_gr": cfg.config.char_gr,
+        "char_ids": &cfg.config.char_ids,
+        "user_rights": cfg.config.user_rights,
+        "user_token": &cfg.config.user_token,
+        "user_token_id": cfg.config.user_token_id,
+        "user_name": &cfg.config.user_name,
+        "user_password": &cfg.config.user_password,
+        "server_host": &cfg.config.server_host,
+        "server_port": cfg.config.server_port,
+        "notices": notices_json,
+        "version": format!("{:?}", cfg.config.version),
+                                        "entrance_count": cfg.config.entrance_count,
+                                        "current_ts": cfg.config.current_ts,
+                                        "expiry_ts": cfg.config.expiry_ts,
+                                        "messages": Vec::<String>::new(),
+                                        "mez_event_id": cfg.config.mez_event_id,
+                                        "mez_start": cfg.config.mez_start,
+                                        "mez_end": cfg.config.mez_end,
+                                        "mez_solo_tickets": cfg.config.mez_solo_tickets,
+                                        "mez_group_tickets": cfg.config.mez_group_tickets,
+                                        "mez_stalls": mez_stalls_str,
+                                        "friends": friends_json,
+    });
+
+    std::fs::write(&config_path, serde_json::to_string_pretty(&config_json).unwrap())
+    .map_err(|e| {
+        error!("❌ Failed to write config.json: {}", e);
+        std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to write config.json: {}", e))
+    })?;
+
+    info!("✅ config.json written to: {:?}", config_path);
+    log_to_file(&format!("✅ config.json written to: {:?}", config_path));
 
     // Cerca exe
-    let mut mhf_iel_exe = config.game_folder.join("mhf-iel.exe");
+    let mut mhf_iel_exe = cfg.game_folder.join("mhf-iel.exe");
     let mut exe_name = "mhf-iel.exe";
 
     if !mhf_iel_exe.exists() {
-        mhf_iel_exe = config.game_folder.join("mhf-iel-cli.exe");
+        mhf_iel_exe = cfg.game_folder.join("mhf-iel-cli.exe");
         exe_name = "mhf-iel-cli.exe";
     }
 
@@ -81,7 +145,6 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
 
     info!("Found game executable: {}", exe_name);
 
-    // Leggi variabili fontconfig
     let fontconfig_path = env::var("FONTCONFIG_PATH")
     .unwrap_or_else(|_| {
         log_to_file("⚠️ FONTCONFIG_PATH NOT SET - using default");
@@ -98,17 +161,16 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     .unwrap_or_else(|_| "/usr/share:/usr/local/share".to_string());
 
     log_to_file(&format!("✅ Font config loaded:"));
-    log_to_file(&format!("  FONTCONFIG_PATH: {}", fontconfig_path));
-    log_to_file(&format!("  FONTCONFIG_FILE: {}", fontconfig_file));
-    log_to_file(&format!("  XDG_DATA_DIRS: {}", xdg_data_dirs));
+    log_to_file(&format!("   FONTCONFIG_PATH: {}", fontconfig_path));
+    log_to_file(&format!("   FONTCONFIG_FILE: {}", fontconfig_file));
+    log_to_file(&format!("   XDG_DATA_DIRS: {}", xdg_data_dirs));
 
     info!("Font configuration:");
     info!("  FONTCONFIG_PATH: {}", fontconfig_path);
     info!("  FONTCONFIG_FILE: {}", fontconfig_file);
 
-    // ✅ CRITICAL: pfx nella stessa cartella del gioco
     let wineprefix = env::var("WINEPREFIX").unwrap_or_else(|_| {
-        let pfx_path = config.game_folder.join("pfx");
+        let pfx_path = cfg.game_folder.join("pfx");
         let pfx_str = pfx_path.to_string_lossy().to_string();
         log_to_file(&format!("⚠️ WINEPREFIX NOT SET - calculated: {}", pfx_str));
         pfx_str
@@ -117,16 +179,13 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     log_to_file(&format!("WINEPREFIX: {}", wineprefix));
     info!("WINEPREFIX: {}", wineprefix);
 
-    // ✅ NUOVO: Crea prefix se non esiste
     let prefix_path = std::path::Path::new(&wineprefix);
     if !prefix_path.exists() || !prefix_path.join("system.reg").exists() {
         log_to_file(&format!("🔧 First launch detected - creating Wine prefix: {}", wineprefix));
         info!("Creating Wine prefix (this may take 1-2 minutes on first launch)...");
 
-        // Crea directory se non esiste
         let _ = std::fs::create_dir_all(&wineprefix);
 
-        // Inizializza Wine prefix
         log_to_file("⏳ Running wineboot --init...");
         let status = Command::new("wineboot")
         .arg("--init")
@@ -142,9 +201,7 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
             Ok(s) if s.success() => {
                 log_to_file("✅ Wine prefix created successfully");
                 info!("Wine prefix created successfully");
-
-                // Installa font giapponesi
-                install_japanese_fonts(&config.game_folder, &wineprefix);
+                install_japanese_fonts(&cfg.game_folder, &wineprefix);
             }
             Ok(s) => {
                 log_to_file(&format!("⚠️ wineboot exited with status: {}", s));
@@ -159,7 +216,6 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
         log_to_file("✅ Wine prefix already exists");
     }
 
-    // Leggi XAUTHORITY
     let xauthority = env::var("XAUTHORITY").unwrap_or_else(|_| {
         let home = env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         let xa = format!("{}/.Xauthority", home);
@@ -169,7 +225,6 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
 
     log_to_file(&format!("XAUTHORITY: {}", xauthority));
 
-    // Verifica se XAUTHORITY esiste
     if std::path::Path::new(&xauthority).exists() {
         log_to_file("✅ XAUTHORITY file EXISTS");
     } else {
@@ -197,7 +252,7 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     let result = Command::new("setsid")
     .arg("wine")
     .arg(&mhf_iel_exe)
-    .current_dir(&config.game_folder)
+    .current_dir(&cfg.game_folder)
     .env("WINEDEBUG", "-all")
     .env("WINEPREFIX", &wineprefix)
     .env("FONTCONFIG_PATH", &fontconfig_path)
@@ -212,14 +267,8 @@ pub fn run_linux(config: MhfConfigLinux) -> std::io::Result<()> {
     match result {
         Ok(child) => {
             log_to_file(&format!("✅ Wine process spawned (PID: {})", child.id()));
-            log_to_file(&format!("✅ Wine has WINEPREFIX={}", wineprefix));
-            log_to_file(&format!("✅ Wine has XAUTHORITY={}", xauthority));
-            log_to_file(&format!("✅ Wine has FONTCONFIG_PATH={}", fontconfig_path));
-            log_to_file(&format!("✅ Wine has FONTCONFIG_FILE={}", fontconfig_file));
-
             info!("✅ Game launched successfully (PID: {})", child.id());
             info!("🎮 Game is running");
-
             Ok(())
         }
         Err(e) => {
