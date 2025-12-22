@@ -8,8 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "visualize": "vite-bundle-visualizer",
+    "tauri:dev:win32": "tauri dev --target i686-pc-windows-msvc",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:build:win32": "tauri build --target i686-pc-windows-msvc"
+    
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.6.3",

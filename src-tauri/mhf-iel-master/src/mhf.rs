@@ -817,6 +817,19 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
             } else {
                 s!("mhfo.dll")
             };
+// Verifica che il file esista
+let dll_path = mhf_folder.join(if graphics_ver == 1 { "mhfo-hd.dll" } else { "mhfo.dll" });
+eprintln!("?? [MHF] DLL exists: {}", dll_path.exists());
+eprintln!("?? [MHF] DLL path: {:?}", dll_path);
+
+data.mhfo_module = unsafe { 
+    let result = LoadLibraryA(dll_name);
+    if result.is_err() {
+        eprintln!("? [MHF] LoadLibraryA failed!");
+        eprintln!("? [MHF] Last error: {:?}", std::io::Error::last_os_error());
+    }
+    result
+}.or(Err(Error::Dll))?;
 
             // HD wants only the basename; SD can use full path
             let ini_for_struct: &[u8] = INI_BASENAME;

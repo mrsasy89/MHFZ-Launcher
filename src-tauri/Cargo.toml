@@ -45,5 +45,8 @@ default = ["custom-protocol"]
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 
-[patch.crates-io]
-wry = { path = "../wry-patch" }
+# [patch.crates-io]
+# wry = { path = "../wry-patch" }
+
+[build]
+target = "i686-pc-windows-msvc"
