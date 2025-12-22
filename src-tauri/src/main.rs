@@ -1331,14 +1331,26 @@ fn main() {
             #[cfg(target_os = "windows")]
             {
                 info!("🎮 [GAME_START] Launching Windows game...");
-                match mhf_iel::run(config).unwrap() {
-                    102 => {}
-                    code => {
-                        info!("exited with code {}", code);
+
+                match mhf_iel::run(config) {  // ← Rimosso .unwrap()
+                    Ok(exit_code) => {
+                        match exit_code {
+                            102 => {
+                                info!("✅ [GAME_START] Game requested restart");
+                            }
+                            code => {
+                                info!("🎮 [GAME_START] Game exited with code {}", code);
+                                break;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        error!("❌ [GAME_START] ERRORE LANCIO GIOCO: {}", e);
                         break;
                     }
-                };
+                }
             }
+
 
             #[cfg(target_os = "linux")]
             {
