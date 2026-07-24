@@ -126,8 +126,8 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 2. **Prepare game files structure**
    ```
    ~/Games/MHFZ/
-   ├── MHFZ-Launcher-x86_64.AppImage  # The launcher
    ├── game/                          # Game files folder
+   │   ├── MHFZ-Launcher-x86_64.AppImage  # The launcher
    │   ├── mhf-iel-cli.exe           # IELess launcher
    │   ├── mhfo-hd.dll               # HD client
    │   ├── mhf.ini                   # Config (auto-generated)
