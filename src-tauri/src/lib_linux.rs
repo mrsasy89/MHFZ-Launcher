@@ -24,32 +24,72 @@ fn log_to_file(msg: &str) {
 fn is_steamos() -> bool {
     if let Ok(content) = std::fs::read_to_string("/etc/os-release") {
         if content.contains("ID=steamos") || content.contains("ID=\"steamos\"") {
-            log_to_file("🎮 Detected SteamOS");
             return true;
         }
     }
-    if Command::new("which")
+    Command::new("which")
         .arg("steamos-readonly")
         .output()
         .map(|o| o.status.success())
         .unwrap_or(false)
-    {
-        log_to_file("🎮 Detected SteamOS (via steamos-readonly)");
-        return true;
+}
+
+/// Rileva se l'hardware e' uno Steam Deck (LCD = Jupiter, OLED = Galileo)
+fn is_steam_deck() -> bool {
+    if let Ok(product) = std::fs::read_to_string("/sys/class/dmi/id/product_name") {
+        let p = product.to_lowercase();
+        if p.contains("jupiter") || p.contains("galileo") || p.contains("steam deck") {
+            return true;
+        }
     }
-    log_to_file("🐧 Detected standard Linux");
+    if let Ok(board) = std::fs::read_to_string("/sys/class/dmi/id/board_vendor") {
+        if board.to_lowercase().contains("valve") {
+            return true;
+        }
+    }
     false
 }
 
-/// Trova il path di Proton Experimental (cerca in tutti i path Steam comuni)
+/// Modalita' grafica del gioco
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum GraphicsMode {
+    Sd, // OpenGL, leggero, compatibile con Wine Flatpak sandbox
+    Hd, // DXVK/D3D9, richiede accesso a Vulkan (funziona meglio con Proton)
+}
+
+/// Determina la modalita' grafica di default in base alla piattaforma,
+/// con possibilita' di override esplicito da parte dell'utente/frontend
+/// tramite la variabile d'ambiente MHFZ_GRAPHICS_MODE=hd|sd
+fn detect_graphics_mode() -> GraphicsMode {
+    if let Ok(mode) = env::var("MHFZ_GRAPHICS_MODE") {
+        match mode.to_lowercase().as_str() {
+            "hd" => {
+                log_to_file("🎨 Graphics mode: HD (override utente)");
+                return GraphicsMode::Hd;
+            }
+            "sd" => {
+                log_to_file("🎨 Graphics mode: SD (override utente)");
+                return GraphicsMode::Sd;
+            }
+            _ => {}
+        }
+    }
+
+    if is_steam_deck() {
+        log_to_file("🎨 Graphics mode: SD (default Steam Deck)");
+        GraphicsMode::Sd
+    } else {
+        log_to_file("🎨 Graphics mode: HD (default Steam Machine/PC)");
+        GraphicsMode::Hd
+    }
+}
+
 fn find_proton_experimental() -> Option<PathBuf> {
     let home = env::var("HOME").unwrap_or_else(|_| "/home/deck".to_string());
 
-    // Path dove Steam cerca Proton (in ordine di priorità)
     let steam_roots = vec![
         format!("{}/.steam/steam", home),
         format!("{}/.local/share/Steam", home),
-        // SD card su Steam Deck
         "/run/media/mmcblk0p1/.steam/steam".to_string(),
         "/run/media/mmcblk0p1/SteamLibrary".to_string(),
     ];
@@ -57,14 +97,12 @@ fn find_proton_experimental() -> Option<PathBuf> {
     for steam_root in &steam_roots {
         let proton_path = PathBuf::from(steam_root)
             .join("steamapps/common/Proton Experimental/proton");
-
         if proton_path.exists() {
             log_to_file(&format!("✅ Proton Experimental found: {:?}", proton_path));
             return Some(proton_path);
         }
     }
 
-    // Cerca anche nelle Steam Libraries aggiuntive (libraryfolders.vdf)
     for steam_root in &steam_roots {
         let vdf_path = PathBuf::from(steam_root).join("steamapps/libraryfolders.vdf");
         if let Ok(content) = std::fs::read_to_string(&vdf_path) {
@@ -86,11 +124,9 @@ fn find_proton_experimental() -> Option<PathBuf> {
         }
     }
 
-    log_to_file("⚠️ Proton Experimental NOT found");
     None
 }
 
-/// Trova il path di Steam (per STEAM_COMPAT_CLIENT_INSTALL_PATH)
 fn find_steam_root() -> String {
     let home = env::var("HOME").unwrap_or_else(|_| "/home/deck".to_string());
     let candidates = vec![
@@ -105,23 +141,22 @@ fn find_steam_root() -> String {
     format!("{}/.steam/steam", home)
 }
 
-/// Enum che descrive il runtime Wine scelto
 #[derive(Debug, PartialEq)]
 enum WineRuntime {
-    ProtonExperimental(PathBuf), // path al binario "proton"
+    ProtonExperimental(PathBuf),
     WineFlatpak,
     WineSystem,
 }
 
-/// Seleziona il runtime migliore disponibile
-fn detect_wine_runtime() -> WineRuntime {
-    // 1. Proton Experimental (priorità massima - migliore compatibilità)
-    if let Some(proton_path) = find_proton_experimental() {
-        log_to_file("🟣 Runtime selezionato: Proton Experimental");
-        return WineRuntime::ProtonExperimental(proton_path);
+fn detect_wine_runtime(mode: GraphicsMode) -> WineRuntime {
+    if mode == GraphicsMode::Hd {
+        if let Some(proton_path) = find_proton_experimental() {
+            log_to_file("🟣 Runtime selezionato: Proton Experimental (HD mode)");
+            return WineRuntime::ProtonExperimental(proton_path);
+        }
+        log_to_file("⚠️ HD mode richiesto ma Proton Experimental non trovato, fallback a Wine");
     }
 
-    // 2. Wine Flatpak (fallback SteamOS)
     if is_steamos() {
         let flatpak_has_wine = Command::new("flatpak")
             .args(["list", "--app"])
@@ -130,31 +165,28 @@ fn detect_wine_runtime() -> WineRuntime {
             .unwrap_or(false);
 
         if flatpak_has_wine {
-            log_to_file("🍷 Runtime selezionato: Wine Flatpak (Proton non trovato)");
+            log_to_file("🍷 Runtime selezionato: Wine Flatpak");
             return WineRuntime::WineFlatpak;
         }
     }
 
-    // 3. Wine di sistema (fallback finale)
     log_to_file("🍷 Runtime selezionato: Wine di sistema");
     WineRuntime::WineSystem
 }
 
-/// Configura permessi Flatpak per Wine (solo se usiamo WineFlatpak)
-fn configure_flatpak_permissions(game_folder: &std::path::Path) {
-    log_to_file("🔐 Configuring Flatpak permissions...");
-    let game_path = game_folder.to_string_lossy();
+fn configure_flatpak_permissions(_game_folder: &std::path::Path) {
+    log_to_file("🔐 Configuring Flatpak permissions (--filesystem=home)...");
 
     let output = Command::new("flatpak")
         .arg("override")
         .arg("--user")
-        .arg(format!("--filesystem={}", game_path))
+        .arg("--filesystem=home")
         .arg("org.winehq.Wine")
         .output();
 
     match output {
         Ok(out) if out.status.success() => {
-            log_to_file(&format!("✅ Flatpak permissions granted for: {}", game_path));
+            log_to_file("✅ Flatpak permissions granted (home filesystem)");
         }
         Ok(out) => {
             log_to_file(&format!("⚠️ flatpak override returned: {}", out.status));
@@ -166,7 +198,6 @@ fn configure_flatpak_permissions(game_folder: &std::path::Path) {
     }
 }
 
-/// ✅ Installa SOLO MS Gothic (max 2 font) e PULISCE la directory prima
 fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
     let mut fonts_source = game_folder.join("Font");
     if !fonts_source.exists() {
@@ -179,24 +210,21 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
         return;
     }
 
-    let fonts_dest = std::path::Path::new(wineprefix)
-        .join("drive_c/windows/Fonts");
+    let fonts_dest = std::path::Path::new(wineprefix).join("drive_c/windows/Fonts");
 
     if !fonts_dest.exists() {
-        log_to_file("🔧 Creating Fonts directory...");
         if let Err(e) = std::fs::create_dir_all(&fonts_dest) {
             log_to_file(&format!("❌ Failed to create Fonts directory: {}", e));
             error!("Failed to create Fonts directory: {}", e);
             return;
         }
-        log_to_file(&format!("✅ Created: {:?}", fonts_dest));
     }
 
-    log_to_file("🧹 Cleaning existing fonts (CRITICAL for SteamOS)...");
+    log_to_file("🧹 Cleaning existing fonts...");
     if let Ok(entries) = std::fs::read_dir(&fonts_dest) {
         let mut removed = 0;
         for entry in entries.flatten() {
-            if let Ok(_) = std::fs::remove_file(entry.path()) {
+            if std::fs::remove_file(entry.path()).is_ok() {
                 removed += 1;
             }
         }
@@ -208,38 +236,23 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
 
     let mut count = 0;
     let mut font_names = Vec::new();
-
-    let allowed_fonts = [
-        "msgothic.ttc",
-        "MS Gothic.ttf",
-        "msgothic.ttf",
-    ];
+    let allowed_fonts = ["msgothic.ttc", "MS Gothic.ttf", "msgothic.ttf"];
 
     if let Ok(entries) = std::fs::read_dir(&fonts_source) {
         for entry in entries.flatten() {
             let path = entry.path();
             if let Some(filename) = path.file_name() {
                 let filename_str = filename.to_string_lossy().to_lowercase();
-
-                let is_allowed = allowed_fonts.iter().any(|&allowed| {
-                    filename_str == allowed.to_lowercase()
-                });
+                let is_allowed = allowed_fonts.iter().any(|&a| filename_str == a.to_lowercase());
 
                 if is_allowed {
                     let dest = fonts_dest.join(filename);
-                    match std::fs::copy(&path, &dest) {
-                        Ok(_) => {
-                            log_to_file(&format!("   ✅ Installed: {:?}", filename));
-                            font_names.push(filename.to_string_lossy().to_string());
-                            count += 1;
-                        }
-                        Err(e) => {
-                            log_to_file(&format!("   ❌ Failed to copy {:?}: {}", filename, e));
-                        }
+                    if std::fs::copy(&path, &dest).is_ok() {
+                        log_to_file(&format!("   ✅ Installed: {:?}", filename));
+                        font_names.push(filename.to_string_lossy().to_string());
+                        count += 1;
                     }
-
                     if count >= 2 {
-                        log_to_file("   ⚠️ Reached max 2 fonts, stopping");
                         break;
                     }
                 }
@@ -248,48 +261,33 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
     }
 
     if count == 0 {
-        log_to_file("❌ No MS Gothic fonts found! Game may not display Japanese correctly.");
+        log_to_file("❌ No MS Gothic fonts found!");
         error!("MS Gothic fonts not found in Font/ folder");
     } else {
         log_to_file(&format!("✅ MS Gothic fonts installed ({} file(s))", count));
-        info!("MS Gothic fonts installation complete ({} files)", count);
-        log_to_file("📝 Registering fonts in Wine registry...");
         register_fonts_in_wine(wineprefix, &font_names);
     }
 }
 
-/// Registra i font nel registro Wine
 fn register_fonts_in_wine(wineprefix: &str, font_files: &[String]) {
-    let runtime = detect_wine_runtime();
+    let mode = detect_graphics_mode();
+    let runtime = detect_wine_runtime(mode);
 
     for font_file in font_files {
         let font_name = if font_file.to_lowercase().contains("gothic") {
             "MS Gothic & MS PGothic & MS UI Gothic (TrueType)"
-        } else if font_file.to_lowercase().contains("mincho") {
-            "MS Mincho (TrueType)"
-        } else if font_file.to_lowercase().contains("meiryo") {
-            "Meiryo (TrueType)"
-        } else if font_file.to_lowercase().contains("source") || font_file.to_lowercase().contains("han") {
-            "Source Han Sans (TrueType)"
         } else {
             continue;
         };
-
-        log_to_file(&format!("   Registering: {} → {}", font_name, font_file));
 
         let status = match &runtime {
             WineRuntime::ProtonExperimental(proton_path) => {
                 let steam_root = find_steam_root();
                 Command::new("python3")
                     .arg(proton_path)
-                    .arg("run")
-                    .arg("reg")
-                    .arg("add")
+                    .arg("run").arg("reg").arg("add")
                     .arg("HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts")
-                    .arg("/v").arg(font_name)
-                    .arg("/t").arg("REG_SZ")
-                    .arg("/d").arg(font_file)
-                    .arg("/f")
+                    .arg("/v").arg(font_name).arg("/t").arg("REG_SZ").arg("/d").arg(font_file).arg("/f")
                     .env("STEAM_COMPAT_DATA_PATH", wineprefix)
                     .env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &steam_root)
                     .env("WINEDEBUG", "-all")
@@ -304,10 +302,7 @@ fn register_fonts_in_wine(wineprefix: &str, font_files: &[String]) {
                     .arg("org.winehq.Wine")
                     .arg("reg").arg("add")
                     .arg("HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts")
-                    .arg("/v").arg(font_name)
-                    .arg("/t").arg("REG_SZ")
-                    .arg("/d").arg(font_file)
-                    .arg("/f")
+                    .arg("/v").arg(font_name).arg("/t").arg("REG_SZ").arg("/d").arg(font_file).arg("/f")
                     .env("WINEDEBUG", "-all")
                     .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
                     .status()
@@ -316,10 +311,7 @@ fn register_fonts_in_wine(wineprefix: &str, font_files: &[String]) {
                 Command::new("wine")
                     .arg("reg").arg("add")
                     .arg("HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts")
-                    .arg("/v").arg(font_name)
-                    .arg("/t").arg("REG_SZ")
-                    .arg("/d").arg(font_file)
-                    .arg("/f")
+                    .arg("/v").arg(font_name).arg("/t").arg("REG_SZ").arg("/d").arg(font_file).arg("/f")
                     .env("WINEPREFIX", wineprefix)
                     .env("WINEDEBUG", "-all")
                     .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
@@ -331,8 +323,6 @@ fn register_fonts_in_wine(wineprefix: &str, font_files: &[String]) {
             log_to_file(&format!("   Registry result: {}", s));
         }
     }
-
-    log_to_file("✅ Fonts registered in Wine registry");
 }
 
 pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
@@ -341,33 +331,19 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
     log_to_file("════════════════════════════════════════════════════");
 
     info!("=== Monster Hunter Frontier - Linux Launcher ===");
-    debug!("Game folder: {:?}", cfg.game_folder);
     log_to_file(&format!("📁 Game folder: {:?}", cfg.game_folder));
-
-    // Scrivi config.json
-    info!("📝 Writing config.json...");
-    log_to_file("📝 Writing config.json...");
 
     let config_path = cfg.game_folder.join("config.json");
 
     let notices_json: Vec<serde_json::Value> = cfg.config.notices.iter().map(|n| {
-        serde_json::json!({
-            "flags": n.flags,
-            "data": &n.data
-        })
+        serde_json::json!({ "flags": n.flags, "data": &n.data })
     }).collect();
 
     let friends_json: Vec<serde_json::Value> = cfg.config.friends.iter().map(|f| {
-        serde_json::json!({
-            "cid": f.cid,
-            "id": f.id,
-            "name": &f.name
-        })
+        serde_json::json!({ "cid": f.cid, "id": f.id, "name": &f.name })
     }).collect();
 
-    let mez_stalls_str: Vec<String> = cfg.config.mez_stalls.iter().map(|s| {
-        format!("{:?}", s)
-    }).collect();
+    let mez_stalls_str: Vec<String> = cfg.config.mez_stalls.iter().map(|s| format!("{:?}", s)).collect();
 
     let config_json = serde_json::json!({
         "char_id": cfg.config.char_id,
@@ -406,28 +382,18 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
             std::io::Error::new(std::io::ErrorKind::Other, err_msg)
         })?;
 
-    info!("✅ config.json written");
     log_to_file(&format!("✅ config.json written to: {:?}", config_path));
 
-    // XInputPlus
-    log_to_file("🎮 Setting up XInputPlus for controller support...");
-    info!("🎮 Setting up XInputPlus...");
-    match crate::xinput::setup_xinputplus(&cfg.game_folder) {
-        Ok(_) => {
-            log_to_file("✅ XInputPlus configured successfully");
-            info!("✅ XInputPlus configured successfully");
-        }
-        Err(e) => {
-            log_to_file(&format!("⚠️ XInputPlus setup failed: {}", e));
-            warn!("XInputPlus setup failed, controller may not work properly: {}", e);
-        }
+    log_to_file("🎮 Setting up XInputPlus...");
+    if let Err(e) = crate::xinput::setup_xinputplus(&cfg.game_folder) {
+        log_to_file(&format!("⚠️ XInputPlus setup failed: {}", e));
+        warn!("XInputPlus setup failed, controller may not work properly: {}", e);
     }
 
-    // Rileva runtime
-    let runtime = detect_wine_runtime();
-    log_to_file(&format!("🔧 Runtime: {:?}", runtime));
+    let mode = detect_graphics_mode();
+    let runtime = detect_wine_runtime(mode);
+    log_to_file(&format!("🔧 Graphics mode: {:?} | Runtime: {:?}", mode, runtime));
 
-    // Cerca exe
     let mut mhf_iel_exe = cfg.game_folder.join("mhf-iel.exe");
     let mut exe_name = "mhf-iel.exe";
 
@@ -443,23 +409,14 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
         return Err(std::io::Error::new(std::io::ErrorKind::NotFound, err_msg));
     }
 
-    info!("Found game executable: {}", exe_name);
     log_to_file(&format!("✅ Found game executable: {}", exe_name));
 
-    // Font config
-    let fontconfig_path = env::var("FONTCONFIG_PATH")
-        .unwrap_or_else(|_| "/etc/fonts".to_string());
-    let fontconfig_file = env::var("FONTCONFIG_FILE")
-        .unwrap_or_else(|_| "/etc/fonts/fonts.conf".to_string());
-    let xdg_data_dirs = env::var("XDG_DATA_DIRS")
-        .unwrap_or_else(|_| "/usr/share:/usr/local/share".to_string());
+    let fontconfig_path = env::var("FONTCONFIG_PATH").unwrap_or_else(|_| "/etc/fonts".to_string());
+    let fontconfig_file = env::var("FONTCONFIG_FILE").unwrap_or_else(|_| "/etc/fonts/fonts.conf".to_string());
+    let xdg_data_dirs = env::var("XDG_DATA_DIRS").unwrap_or_else(|_| "/usr/share:/usr/local/share".to_string());
 
-    // ─── Prefix ───────────────────────────────────────────────────────────────
-    // Con Proton usiamo STEAM_COMPAT_DATA_PATH (es: /home/deck/MHFZ/proton_pfx)
-    // Con Wine usiamo WINEPREFIX classico (es: /home/deck/MHFZ/pfx)
     let (wineprefix, compat_data_path) = match &runtime {
         WineRuntime::ProtonExperimental(_) => {
-            // Proton crea pfx/ dentro compat_data_path automaticamente
             let compat = cfg.game_folder.join("proton_pfx");
             let wine_pfx = compat.join("pfx");
             (wine_pfx.to_string_lossy().to_string(), Some(compat.to_string_lossy().to_string()))
@@ -473,31 +430,26 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
     };
 
     log_to_file(&format!("🍷 WINEPREFIX: {}", wineprefix));
-    if let Some(ref cdp) = compat_data_path {
-        log_to_file(&format!("🟣 STEAM_COMPAT_DATA_PATH: {}", cdp));
-    }
 
-    // ─── Init prefix se necessario ────────────────────────────────────────────
     let prefix_path = std::path::Path::new(&wineprefix);
     let system_reg = prefix_path.join("system.reg");
-    let need_init = !prefix_path.exists() || !system_reg.exists();
+    let dosdevices_c = prefix_path.join("dosdevices/c:");
+    let drive_c_windows = prefix_path.join("drive_c/windows");
+    let need_init = !prefix_path.exists()
+        || !system_reg.exists()
+        || !dosdevices_c.exists()
+        || !drive_c_windows.exists();
 
     if need_init {
-        log_to_file("🔧 First launch - initializing Wine/Proton prefix...");
-        info!("Creating prefix (this may take 1-2 minutes on first launch)...");
-
+        log_to_file("🔧 Prefix mancante o incompleto - inizializzazione...");
         let _ = std::fs::create_dir_all(&wineprefix);
 
         let init_output = match &runtime {
             WineRuntime::ProtonExperimental(proton_path) => {
                 let cdp = compat_data_path.as_deref().unwrap_or("");
                 let steam_root = find_steam_root();
-                log_to_file(&format!("🟣 Initializing Proton prefix: {}", cdp));
                 Command::new("python3")
-                    .arg(proton_path)
-                    .arg("run")
-                    .arg("wineboot")
-                    .arg("--init")
+                    .arg(proton_path).arg("run").arg("wineboot").arg("--init")
                     .env("STEAM_COMPAT_DATA_PATH", cdp)
                     .env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &steam_root)
                     .env("WINEDEBUG", "-all")
@@ -508,7 +460,6 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                     .output()
             }
             WineRuntime::WineFlatpak => {
-                log_to_file("🍷 Initializing Wine Flatpak prefix...");
                 configure_flatpak_permissions(&cfg.game_folder);
                 Command::new("flatpak")
                     .arg("run")
@@ -524,7 +475,6 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                     .output()
             }
             WineRuntime::WineSystem => {
-                log_to_file("🍷 Initializing system Wine prefix...");
                 Command::new("wineboot")
                     .arg("--init")
                     .env("WINEPREFIX", &wineprefix)
@@ -538,54 +488,40 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
         };
 
         match init_output {
+            Ok(out) if out.status.success() => log_to_file("✅ Prefix initialized successfully"),
             Ok(out) => {
-                if out.status.success() {
-                    log_to_file("✅ Prefix initialized successfully");
-                    info!("Prefix initialized successfully");
-                } else {
-                    log_to_file(&format!("⚠️ wineboot exited: {}", out.status));
-                    log_to_file(&format!("   stderr: {}", String::from_utf8_lossy(&out.stderr)));
-                }
+                log_to_file(&format!("⚠️ wineboot exited: {}", out.status));
+                log_to_file(&format!("   stderr: {}", String::from_utf8_lossy(&out.stderr)));
             }
-            Err(e) => {
-                log_to_file(&format!("❌ Failed to run wineboot: {}", e));
-                error!("Failed to run wineboot: {}", e);
-            }
+            Err(e) => log_to_file(&format!("❌ Failed to run wineboot: {}", e)),
         }
 
-        let wait_time = 10u64;
-        log_to_file(&format!("⏳ Waiting {} seconds for prefix to settle...", wait_time));
-        std::thread::sleep(std::time::Duration::from_secs(wait_time));
-
+        std::thread::sleep(std::time::Duration::from_secs(10));
         install_japanese_fonts(&cfg.game_folder, &wineprefix);
     } else {
         log_to_file("✅ Prefix already exists and configured");
-        info!("✅ Prefix already configured");
     }
 
-    // XAUTHORITY
     let xauthority = env::var("XAUTHORITY").unwrap_or_else(|_| {
         let home = env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         format!("{}/.Xauthority", home)
     });
 
-    // ─── Lancia il gioco ──────────────────────────────────────────────────────
-    info!("🚀 Starting game...");
     log_to_file("🚀 Launching game...");
     log_to_file(&format!("   Executable: {:?}", mhf_iel_exe));
+    log_to_file(&format!("   Working dir: {:?}", cfg.game_folder));
 
-    let dll_overrides = "xinput1_3=n,b;dinput=n,b;dinput8=n,b;winemenubuilder.exe=d";
+    let dll_overrides = match mode {
+        GraphicsMode::Hd => "xinput1_3=n,b;dinput=n,b;dinput8=n,b;winemenubuilder.exe=d;d3d9=n,b;d3d11=n,b;dxgi=n,b",
+        GraphicsMode::Sd => "xinput1_3=n,b;dinput=n,b;dinput8=n,b;winemenubuilder.exe=d",
+    };
 
     let result = match &runtime {
         WineRuntime::ProtonExperimental(proton_path) => {
             let cdp = compat_data_path.as_deref().unwrap_or("");
             let steam_root = find_steam_root();
-            log_to_file(&format!("🟣 Launching via Proton Experimental: {:?}", proton_path));
-            Command::new("setsid")
-                .arg("python3")
-                .arg(proton_path)
-                .arg("run")
-                .arg(&mhf_iel_exe)
+            let mut cmd = Command::new("setsid");
+            cmd.arg("python3").arg(proton_path).arg("run").arg(&mhf_iel_exe)
                 .env("STEAM_COMPAT_DATA_PATH", cdp)
                 .env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &steam_root)
                 .env("WINEDEBUG", "-all")
@@ -593,18 +529,18 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                 .env("FONTCONFIG_PATH", &fontconfig_path)
                 .env("FONTCONFIG_FILE", &fontconfig_file)
                 .env("XDG_DATA_DIRS", &xdg_data_dirs)
-                .env("XAUTHORITY", &xauthority)
-                .current_dir(&cfg.game_folder)
-                .stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
+                .env("XAUTHORITY", &xauthority);
+            if mode == GraphicsMode::Hd {
+                cmd.env("DXVK_HUD", "fps");
+            }
+            cmd.current_dir(&cfg.game_folder)
+                .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
                 .spawn()
         }
         WineRuntime::WineFlatpak => {
-            log_to_file("🍷 Launching via Wine Flatpak (fallback)");
             Command::new("setsid")
-                .arg("flatpak")
-                .arg("run")
+                .arg("flatpak").arg("run")
+                .arg("--filesystem=home")
                 .arg(format!("--env=WINEPREFIX={}", &wineprefix))
                 .arg("org.winehq.Wine")
                 .arg(&mhf_iel_exe)
@@ -615,16 +551,12 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                 .env("XDG_DATA_DIRS", &xdg_data_dirs)
                 .env("XAUTHORITY", &xauthority)
                 .current_dir(&cfg.game_folder)
-                .stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
+                .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
                 .spawn()
         }
         WineRuntime::WineSystem => {
-            log_to_file("🍷 Launching via system Wine (fallback)");
             Command::new("setsid")
-                .arg("wine")
-                .arg(&mhf_iel_exe)
+                .arg("wine").arg(&mhf_iel_exe)
                 .env("WINEPREFIX", &wineprefix)
                 .env("WINEDEBUG", "-all")
                 .env("WINEDLLOVERRIDES", dll_overrides)
@@ -633,9 +565,7 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                 .env("XDG_DATA_DIRS", &xdg_data_dirs)
                 .env("XAUTHORITY", &xauthority)
                 .current_dir(&cfg.game_folder)
-                .stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
+                .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
                 .spawn()
         }
     };
@@ -643,15 +573,12 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
     match result {
         Ok(child) => {
             log_to_file(&format!("✅ Game launched successfully (PID: {})", child.id()));
-            log_to_file("🎮 Game is running!");
             log_to_file("════════════════════════════════════════════════════");
             info!("✅ Game launched successfully (PID: {})", child.id());
-            info!("🎮 Game is running");
             Ok(())
         }
         Err(e) => {
             log_to_file(&format!("❌ Failed to launch game: {}", e));
-            log_to_file("════════════════════════════════════════════════════");
             error!("❌ Failed to launch game: {}", e);
             Err(e)
         }
