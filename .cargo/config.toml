@@ -1,2 +1,0 @@
-[patch.crates-io]
-wry = { git = "https://github.com/tauri-apps/wry", branch = "dev" }
