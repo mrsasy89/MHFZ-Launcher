@@ -641,19 +641,57 @@ This project is for **educational purposes** and **preservation** of a discontin
 - ✅ **December 11, 2025**: Wine launcher successfully tested on Arch Linux
 - ✅ **December 11, 2025**: Game confirmed playable via Wine 10.20
 
-### Next Milestone
+---
+## SteamOS and Linux status
 
-**v1.5.0 - Multi-distro Support**
-  
-**ETA**: ~1-2 weeks
+The Linux launcher has been tested on official SteamOS using a Distrobox development environment.
 
-Goals:
-- [ ] Ubuntu 22.04/24.04 testing
-- [ ] Fedora 39/40 testing
-- [ ] Debian 12 testing
-- [ ] Steam OS testing
-- [ ] Flatpak packaging (Linux, **only if requested by community**)
+### Current Linux support
 
+- Proton Experimental is used as the recommended runtime for both SD and HD modes.
+- The launcher detects both common Steam paths:
+  - `~/.local/share/Steam`
+  - `~/.steam/steam`
+- When the launcher runs inside Distrobox, Proton is launched on the SteamOS host through `distrobox-host-exec`.
+- The Proton compatibility prefix is stored separately at:
+  - `~/Downloads/MHFZ/proton_pfx`
+- SD mode applies XInput and DirectInput overrides.
+- HD mode adds Direct3D 9, Direct3D 11, DXGI and DXVK overrides.
+- XInputPlus installation is supported when the required files are available in the launcher resources.
+
+### Development environment
+
+The recommended SteamOS development workflow is:
+
+```bash
+distrobox enter mhfz-dev
+cd ~/MHFZ-Launcher
+npm run tauri:dev
+```
+
+The frontend and Tauri application must be tested with `npm run tauri:dev` before committing changes.
+
+### Password storage fallback
+
+The launcher first attempts to use the operating system secure keyring.
+
+Some minimal SteamOS/Distrobox environments do not expose a Secret Service provider. When secure storage is unavailable, the launcher uses a local fallback file:
+
+```text
+~/.config/mhf-launcher/passwords.json
+```
+
+The fallback file is created with `0600` permissions and uses atomic writes. It is removed when **Remember me** is disabled.
+
+> Security note: the fallback stores credentials in plain text and is readable only by the local user. It exists to keep the launcher usable when Secret Service is unavailable.
+
+### Packaging status
+
+A fully self-contained AppImage is currently experimental.
+
+Tauri 1 depends on WebKitGTK 4.0. Although the shared libraries can be bundled, WebKitGTK helper processes such as `WebKitNetworkProcess` may use distribution-specific hardcoded paths. This makes a portable standalone AppImage unreliable across SteamOS and other distributions.
+
+The planned Linux distribution format is Flatpak, because it provides a managed GNOME/GTK/WebKitGTK runtime and works naturally on SteamOS.
 ---
 
 ⭐ **Star this project** if you find it useful!  
