@@ -120,7 +120,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 1. **Download AppImage** from [Releases](https://github.com/mrsasy89/MHFZ-Launcher/releases)
    ```bash
-   chmod +x MHFZ-Launcher-x86_64.AppImage
+   chmod +x mhfz.AppImage
    ```
 
 2. **Prepare game files structure**
@@ -174,7 +174,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
    ```
 
 4. **Login and play!**
-   - Enter Avalanche credentials
+   - Enter Server 1 credentials
    - Select character
    - Click **START GAME**
    - Game launches automatically 🎉
