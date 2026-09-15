@@ -22,6 +22,9 @@ export default defineConfig({
         '**/dosdevices/**',                    // Escludi Wine symlinks
         '**/.local/**',                        // Escludi dati locali
         '**/target/**',                        // Escludi build Rust
+        '**/build-dir/**',
+        '**/.flatpak-builder/**',
+        '**/repo/**',
       ]
     }
   },

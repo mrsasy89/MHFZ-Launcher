@@ -91,3 +91,11 @@ game/
 src-tauri/dat/
 src-tauri/ButterClient/
 src-tauri/ButterVersion.txt
+build-dir/
+build-dir/
+.flatpak-builder/
+repo/
+flatpak-source/
+tools/*.AppImage
+tools/*.bak
+mhfz.AppImage

@@ -54,6 +54,12 @@ fn is_steam_deck() -> bool {
     false
 }
 
+/// Rileva se l'app è eseguita dentro Flatpak.
+fn is_flatpak() -> bool {
+    std::env::var_os("FLATPAK_ID").is_some()
+    || std::path::Path::new("/.flatpak-info").exists()
+}
+
 /// Modalita' grafica del gioco.
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum GraphicsMode {
@@ -204,10 +210,13 @@ fn detect_wine_runtime(mode: GraphicsMode) -> WineRuntime {
             log_to_file("🍷 Runtime selezionato: Wine Flatpak");
             return WineRuntime::WineFlatpak;
         }
-    }
 
-    log_to_file("🍷 Runtime selezionato: Wine di sistema");
-    WineRuntime::WineSystem
+        log_to_file("🍷 Runtime selezionato: Wine di sistema");
+        WineRuntime::WineSystem
+    } else {
+        log_to_file("🍷 Runtime selezionato: Wine di sistema");
+        WineRuntime::WineSystem
+    }
 }
 
 fn configure_flatpak_permissions(_game_folder: &std::path::Path) {
@@ -226,7 +235,7 @@ fn configure_flatpak_permissions(_game_folder: &std::path::Path) {
         }
         Ok(out) => {
             log_to_file(&format!("⚠️ flatpak override returned: {}", out.status));
-            log_to_file(&format!("   stderr: {}", String::from_utf8_lossy(&out.stderr)));
+            log_to_file(&format!(" stderr: {}", String::from_utf8_lossy(&out.stderr)));
         }
         Err(e) => {
             log_to_file(&format!("❌ Failed to configure Flatpak: {}", e));
@@ -263,7 +272,7 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
                 removed += 1;
             }
         }
-        log_to_file(&format!("   Removed {} old font file(s)", removed));
+        log_to_file(&format!(" Removed {} old font file(s)", removed));
     }
 
     log_to_file("🔤 Installing MS Gothic fonts (MAX 2 files)...");
@@ -285,13 +294,13 @@ fn install_japanese_fonts(game_folder: &std::path::Path, wineprefix: &str) {
                 if is_allowed {
                     let dest = fonts_dest.join(filename);
                     if std::fs::copy(&path, &dest).is_ok() {
-                        log_to_file(&format!("   ✅ Installed: {:?}", filename));
+                        log_to_file(&format!(" ✅ Installed: {:?}", filename));
                         font_names.push(filename.to_string_lossy().to_string());
                         count += 1;
-                    }
 
-                    if count >= 2 {
-                        break;
+                        if count >= 2 {
+                            break;
+                        }
                     }
                 }
             }
@@ -384,7 +393,7 @@ fn register_fonts_in_wine(wineprefix: &str, font_files: &[String]) {
         };
 
         if let Ok(status) = status {
-            log_to_file(&format!("   Registry result: {}", status));
+            log_to_file(&format!(" Registry result: {}", status));
         }
     }
 }
@@ -439,7 +448,7 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                                         "entrance_count": cfg.config.entrance_count,
                                         "current_ts": cfg.config.current_ts,
                                         "expiry_ts": cfg.config.expiry_ts,
-                                        "messages": Vec::<String>::new(),
+                                        "messages": Vec::<serde_json::Value>::new(),
                                         "mez_event_id": cfg.config.mez_event_id,
                                         "mez_start": cfg.config.mez_start,
                                         "mez_end": cfg.config.mez_end,
@@ -474,13 +483,13 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
     if !mhf_iel_exe.exists() {
         mhf_iel_exe = cfg.game_folder.join("mhf-iel-cli.exe");
         exe_name = "mhf-iel-cli.exe";
-    }
 
-    if !mhf_iel_exe.exists() {
-        let err_msg = "mhf-iel.exe or mhf-iel-cli.exe not found in game folder";
-        error!("{}", err_msg);
-        log_to_file(&format!("❌ {}", err_msg));
-        return Err(std::io::Error::new(std::io::ErrorKind::NotFound, err_msg));
+        if !mhf_iel_exe.exists() {
+            let err_msg = "mhf-iel.exe or mhf-iel-cli.exe not found in game folder";
+            error!("{}", err_msg);
+            log_to_file(&format!("❌ {}", err_msg));
+            return Err(std::io::Error::new(std::io::ErrorKind::NotFound, err_msg));
+        }
     }
 
     log_to_file(&format!("✅ Found game executable: {}", exe_name));
@@ -495,6 +504,7 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
         WineRuntime::ProtonExperimental(_) => {
             let compat = cfg.game_folder.join("proton_pfx");
             let wine_pfx = compat.join("pfx");
+
             (
                 wine_pfx.to_string_lossy().to_string(),
              Some(compat.to_string_lossy().to_string()),
@@ -527,15 +537,39 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
                 let steam_root = find_steam_root();
                 let _ = std::fs::create_dir_all(cdp);
 
-                if is_distrobox() {
+                if is_flatpak() {
+                    log_to_file("📦 Flatpak detected: initializing Proton prefix on SteamOS host via flatpak-spawn");
+
+                    let host_command = format!(
+                        "mkdir -p '{}' && cd '{}' && \
+STEAM_COMPAT_DATA_PATH='{}' \
+STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \
+WINEDEBUG='-all' \
+WINEDLLOVERRIDES='winemenubuilder.exe=d' \
+python3 '{}' run wineboot --init",
+shell_escape(cdp),
+                                               shell_escape(&cfg.game_folder.to_string_lossy()),
+                                               shell_escape(cdp),
+                                               shell_escape(&steam_root),
+                                               shell_escape(&proton_path.to_string_lossy()),
+                    );
+
+                    Command::new("flatpak-spawn")
+                    .arg("--host")
+                    .arg("bash")
+                    .arg("-lc")
+                    .arg(host_command)
+                    .stdin(Stdio::null())
+                    .output()
+                } else if is_distrobox() {
                     log_to_file("📦 Distrobox detected: initializing Proton prefix on SteamOS host");
 
                     let host_command = format!(
-                        "mkdir -p '{}' && cd '{}' && \\
-STEAM_COMPAT_DATA_PATH='{}' \\
-STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \\
-WINEDEBUG='-all' \\
-WINEDLLOVERRIDES='winemenubuilder.exe=d' \\
+                        "mkdir -p '{}' && cd '{}' && \
+STEAM_COMPAT_DATA_PATH='{}' \
+STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \
+WINEDEBUG='-all' \
+WINEDLLOVERRIDES='winemenubuilder.exe=d' \
 python3 '{}' run wineboot --init",
 shell_escape(cdp),
                                                shell_escape(&cfg.game_folder.to_string_lossy()),
@@ -600,7 +634,7 @@ shell_escape(cdp),
             Ok(out) if out.status.success() => log_to_file("✅ Prefix initialized successfully"),
             Ok(out) => {
                 log_to_file(&format!("⚠️ wineboot exited: {}", out.status));
-                log_to_file(&format!("   stderr: {}", String::from_utf8_lossy(&out.stderr)));
+                log_to_file(&format!(" stderr: {}", String::from_utf8_lossy(&out.stderr)));
             }
             Err(e) => log_to_file(&format!("❌ Failed to run wineboot: {}", e)),
         }
@@ -619,8 +653,8 @@ shell_escape(cdp),
     });
 
     log_to_file("🚀 Launching game...");
-    log_to_file(&format!("   Executable: {:?}", mhf_iel_exe));
-    log_to_file(&format!("   Working dir: {:?}", cfg.game_folder));
+    log_to_file(&format!(" Executable: {:?}", mhf_iel_exe));
+    log_to_file(&format!(" Working dir: {:?}", cfg.game_folder));
 
     let dll_overrides = match mode {
         GraphicsMode::Hd => {
@@ -634,19 +668,56 @@ shell_escape(cdp),
             let cdp = compat_data_path.as_deref().unwrap_or("");
             let steam_root = find_steam_root();
 
-            if is_distrobox() {
+            if is_flatpak() {
+                log_to_file("📦 Flatpak detected: launching Proton on SteamOS host via flatpak-spawn");
+
+                let host_command = format!(
+                    "mkdir -p '{}' && cd '{}' && \
+STEAM_COMPAT_DATA_PATH='{}' \
+STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \
+WINEDEBUG='-all' \
+WINEDLLOVERRIDES='{}' \
+FONTCONFIG_PATH='{}' \
+FONTCONFIG_FILE='{}' \
+XDG_DATA_DIRS='{}' \
+XAUTHORITY='{}' \
+python3 '{}' run '{}'",
+shell_escape(cdp),
+                                           shell_escape(&cfg.game_folder.to_string_lossy()),
+                                           shell_escape(cdp),
+                                           shell_escape(&steam_root),
+                                           shell_escape(dll_overrides),
+                                           shell_escape(&fontconfig_path),
+                                           shell_escape(&fontconfig_file),
+                                           shell_escape(&xdg_data_dirs),
+                                           shell_escape(&xauthority),
+                                           shell_escape(&proton_path.to_string_lossy()),
+                                           shell_escape(exe_name),
+                );
+
+                Command::new("setsid")
+                .arg("flatpak-spawn")
+                .arg("--host")
+                .arg("bash")
+                .arg("-lc")
+                .arg(host_command)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+            } else if is_distrobox() {
                 log_to_file("📦 Distrobox detected: launching Proton on SteamOS host");
 
                 let host_command = format!(
-                    "mkdir -p '{}' && cd '{}' && \\
-STEAM_COMPAT_DATA_PATH='{}' \\
-STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \\
-WINEDEBUG='-all' \\
-WINEDLLOVERRIDES='{}' \\
-FONTCONFIG_PATH='{}' \\
-FONTCONFIG_FILE='{}' \\
-XDG_DATA_DIRS='{}' \\
-XAUTHORITY='{}' \\
+                    "mkdir -p '{}' && cd '{}' && \
+STEAM_COMPAT_DATA_PATH='{}' \
+STEAM_COMPAT_CLIENT_INSTALL_PATH='{}' \
+WINEDEBUG='-all' \
+WINEDLLOVERRIDES='{}' \
+FONTCONFIG_PATH='{}' \
+FONTCONFIG_FILE='{}' \
+XDG_DATA_DIRS='{}' \
+XAUTHORITY='{}' \
 python3 '{}' run '{}'",
 shell_escape(cdp),
                                            shell_escape(&cfg.game_folder.to_string_lossy()),

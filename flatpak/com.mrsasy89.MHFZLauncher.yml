@@ -1,0 +1,68 @@
+app-id: com.mrsasy89.mhfz-launcher
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node20
+
+build-options:
+  build-args:
+    - --share=network
+  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node20/bin
+  env:
+    CARGO_HOME: /run/build/mhfz-launcher/.cargo
+    npm_config_cache: /run/build/mhfz-launcher/.npm
+    npm_config_registry: https://registry.npmjs.org/
+    npm_config_prefer_offline: 'true'
+    npm_config_audit: 'false'
+    npm_config_fund: 'false'
+    npm_config_fetch_retries: '5'
+    npm_config_fetch_retry_mintimeout: '10000'
+    npm_config_fetch_retry_maxtimeout: '120000'
+    npm_config_fetch_timeout: '300000'
+
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=host:ro
+  - --filesystem=xdg-download/MHFZ:create
+  - --filesystem=~/.local/share/Steam:ro
+  - --filesystem=~/.steam/steam:ro
+  - --talk-name=org.freedesktop.Flatpak
+  - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
+
+modules:
+  - name: mhfz-launcher
+    buildsystem: simple
+    build-commands:
+      - set -eu
+      - echo "=== Build environment ==="
+      - pwd
+      - echo "=== Network check ==="
+      - getent hosts registry.npmjs.org
+      - echo "=== Source files ==="
+      - ls -la source
+      - test -f source/package.json
+      - test -f source/package-lock.json
+      - test -f source/src-tauri/Cargo.toml
+      - test -d source/src-tauri/mhf-iel-master
+      - cd source && node --version
+      - cd source && npm --version
+      - cd source && cargo --version
+      - cd source && npm ci --verbose --no-audit --no-fund
+      - test -x source/node_modules/.bin/vite
+      - cd source && npm run build
+      - cd source && cargo build --release --manifest-path src-tauri/Cargo.toml
+      - install -Dm755 source/src-tauri/target/release/app /app/bin/mhfz-launcher
+      - install -d /app/share/mhfz-launcher/resources
+      - cp -a source/src-tauri/resources/xinputplus /app/share/mhfz-launcher/resources/
+
+    sources:
+      - type: dir
+        path: /home/deck/MHFZ-Launcher/flatpak-source
+        dest: source
