@@ -14,7 +14,7 @@ pub fn get_default_endpoints() -> Vec<Endpoint> {
     vec![
         Endpoint {
             url: "http://avalanchemhfz.ddns.net".into(),
-            name: "Avalanche".into(),
+            name: "Server 1".into(),
             launcher_port: Some(9010),
             game_port: Some(53310),
             game_folder: None,

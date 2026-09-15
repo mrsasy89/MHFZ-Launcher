@@ -99,3 +99,12 @@ flatpak-source/
 tools/*.AppImage
 tools/*.bak
 mhfz.AppImage
+
+# Local release artifacts
+*.zip
+*.AppImage
+*.msi
+*.exe
+
+# Local release staging
+release-linux/

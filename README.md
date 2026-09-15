@@ -22,7 +22,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - 🚀 **Lightweight**: ~10MB binary size
 - 🔐 **Secure**: Token-based authentication
 - 📦 **Auto-patcher**: Server-side patch management
-- 🌐 **Avalanche Server**: Pre-configured for immediate play
+- 🌐 **Server 1**: Pre-configured for immediate play
 - ⚙️ **Full Settings Control**: Game configuration (graphics, audio, controls)
 - 🐧 **AppImage Support**: Portable Linux distribution **NEW!** ✨
 - 🎌 **Auto Japanese Fonts**: Automatic font installation on Linux **NEW!** ✨
@@ -38,7 +38,7 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 - [x] Wine integration architecture
 - [x] Branding cleanup (vanilla CAPCOM style)
 - [x] **Server configuration system** ✨
-- [x] **Avalanche MHFZ server pre-configured** ✨
+- [x] **Server 1 MHFZ server pre-configured** ✨
 - [x] Character selection UI
 - [x] Login/authentication system
 - [x] **Wine launcher core (lib_linux.rs)** 
