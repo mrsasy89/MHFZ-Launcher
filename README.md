@@ -201,12 +201,12 @@ See [Build Instructions](#build-instructions) below.
 
 ## 🎮 Server Configuration
 
-### Avalanche MHFZ Server (Pre-configured)
+### Italian MHFZ Server (Pre-configured)
 
-The launcher comes pre-configured with the **Avalanche** server:
+The launcher comes pre-configured with the **Server 1** server:
 
 ```rust
-Server: Avalanche
+Server: Server 1
 URL: http://avalanchemhfz.ddns.net
 Launcher Port: 9010  // Patch/login server
 Game Port: 54001     // In-game connection
