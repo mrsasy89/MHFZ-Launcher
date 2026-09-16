@@ -9,7 +9,7 @@ use std::path::Path;
 const LINE_ENDING: &str = "\r\n";
 
 #[cfg(not(target_os = "windows"))]
-// const LINE_ENDING: &str = "\n";
+const LINE_ENDING: &str = "\n";
 
 #[derive(Debug, Clone)]
 pub struct IniFile {
