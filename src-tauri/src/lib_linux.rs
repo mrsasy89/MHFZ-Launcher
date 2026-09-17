@@ -502,7 +502,35 @@ pub fn run_linux(cfg: MhfConfigLinux) -> std::io::Result<()> {
 
     let (wineprefix, compat_data_path) = match &runtime {
         WineRuntime::ProtonExperimental(_) => {
-            let compat = cfg.game_folder.join("proton_pfx");
+            let default_compat = cfg.game_folder.join("proton_pfx");
+
+            let compat = env::var_os("MHFZ_STEAM_COMPAT_DATA_PATH")
+            .map(PathBuf::from)
+            .filter(|path| {
+                let valid = path.join("pfx").join("drive_c").is_dir();
+
+                if valid {
+                    log_to_file(&format!(
+                        "🟣 Using custom Steam compat-data path: {:?}",
+                        path
+                    ));
+                } else {
+                    log_to_file(&format!(
+                        "⚠ Ignoring invalid MHFZ_STEAM_COMPAT_DATA_PATH: {:?} (missing pfx/drive_c)",
+                                         path
+                    ));
+                }
+
+                valid
+            })
+            .unwrap_or_else(|| {
+                log_to_file(&format!(
+                    "🟣 Using launcher compat-data path: {:?}",
+                    default_compat
+                ));
+                default_compat
+            });
+
             let wine_pfx = compat.join("pfx");
 
             (
