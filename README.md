@@ -53,8 +53,8 @@ MHFZ-Launcher is a modern, cross-platform game launcher for **Monster Hunter Fro
 
 ### 📅 Roadmap (Phase 4)
 
-- [ ] Multi-distro testing (Ubuntu, Fedora, Debian)
 - [ ] Steam OS optimization
+- [ ] Multi-distro testing (Ubuntu, Fedora, Debian)
 - [ ] Community feedback integration
 - [ ] Flatpak packaging (Linux, **on-demand only**)  
   _Planned only if the community explicitly requests it; AppImage remains the primary distribution format._
