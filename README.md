@@ -522,11 +522,11 @@ git push origin feature/my-feature
 | Platform | Status | Notes |
 |----------|--------|-------|
 | **Arch Linux** | ✅ **Working** | Wine 10.20 + DXVK 2.7.1, primary dev environment |
+| **Steam OS** | 🧪 tested on Steam Machine and Steam Deck | (testing) |
 | **Windows 10** | ✅ Working | Native build |
 | **Windows 11** | ✅ Working | Windows 10 compatible |
 | **Ubuntu 22.04** | 🧪 Untested | Should work (needs testing) |
 | **Debian 12** | 🧪 Untested | Should work (needs testing) |
-| **Steam OS** | 🧪 Untested | Planned support |
 
 ### Test Coverage
 
